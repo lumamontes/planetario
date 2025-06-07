@@ -1,7 +1,7 @@
 import PlanetGalaxy from "@/components/PlanetGalaxy";
 import TerminalAuthForm from "@/components/TerminalAuthForm";
 
-export default function Home() {
+export default function SignUp() {
   return (
     <main className="flex flex-row w-full h-screen">
       {/* Left side - Galaxy of planets */}
@@ -36,23 +36,23 @@ export default function Home() {
             </div>
             <div className="border border-green-400 p-4 bg-black/50 rounded">
               <div className="text-green-300 text-sm leading-relaxed">
-                Bem-vindo à galáxia de mundos digitais. Cada planeta representa um universo único criado por nossa comunidade. 
-                <span className="text-green-400 font-bold"> Entre para acessar seu universo</span> ou explore a galáxia à esquerda.
+                Junte-se à galáxia de criadores digitais. Cada planeta à esquerda representa um universo único. 
+                <span className="text-green-400 font-bold"> Crie sua conta para construir seu primeiro planeta</span> e compartilhe com o universo.
               </div>
             </div>
           </div>
 
           {/* Auth Form */}
-          <TerminalAuthForm mode="signin" />
+          <TerminalAuthForm mode="signup" />
           
           {/* Footer info */}
           <div className="mt-8 text-center">
             <div className="text-green-600 font-mono text-xs">
-              Explore a galáxia • Crie seu planeta • Compartilhe seu universo
+              Construa • Compartilhe • Explore • Conecte
             </div>
           </div>
         </div>
       </div>
     </main>
   );
-}
+} 

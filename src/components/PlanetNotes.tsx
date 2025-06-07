@@ -7,12 +7,11 @@ import { PlanetNoteWithUser } from '@/types/database'
 
 interface PlanetNotesProps {
   planetId: string
-  planetSlug: string
   user: User | null
   isOwner: boolean
 }
 
-export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: PlanetNotesProps) {
+export default function PlanetNotes({ planetId, user, isOwner }: PlanetNotesProps) {
   const [notes, setNotes] = useState<PlanetNoteWithUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)

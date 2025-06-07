@@ -894,7 +894,6 @@ export default function PlanetViewer({ planet, content, user, isOwner }: PlanetV
               <div className="pointer-events-auto">
                 <PlanetNotes
                   planetId={planet.id}
-                  planetSlug={planet.slug}
                   user={user}
                   isOwner={isOwner}
                 />

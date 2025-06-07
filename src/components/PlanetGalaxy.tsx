@@ -36,7 +36,6 @@ export default function PlanetGalaxy() {
 
   const supabase = createClient()
 
-  // Color palette for planets
   const planetColors = [
     '#f59e0b', // Amber
     '#10b981', // Emerald
@@ -118,7 +117,7 @@ export default function PlanetGalaxy() {
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [planetOrbs.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [planetOrbs.length])
 
   const getPlanetStyle = (orb: PlanetOrb) => {
     const scale = 1 + orb.z / 200
@@ -175,7 +174,6 @@ export default function PlanetGalaxy() {
         background: 'radial-gradient(ellipse at center, #0a0f1a 0%, #000000 80%)'
       }}
     >
-      {/* Stars background - more subtle */}
       <div className="absolute inset-0">
         {[...Array(40)].map((_, i) => (
           <div
@@ -192,7 +190,6 @@ export default function PlanetGalaxy() {
         ))}
       </div>
 
-      {/* Galaxy center glow - more subtle */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div 
           className="w-24 h-24 rounded-full opacity-10"
@@ -203,7 +200,6 @@ export default function PlanetGalaxy() {
         />
       </div>
 
-      {/* Planet orbs */}
       {planetOrbs.map((orb) => (
         <Link
           key={orb.planet.id}
@@ -218,7 +214,6 @@ export default function PlanetGalaxy() {
         </Link>
       ))}
 
-      {/* Planet info tooltip */}
       {hoveredPlanet && (
         <div className="fixed top-4 left-4 bg-black/95 border border-green-400 backdrop-blur-md rounded-lg p-4 max-w-sm z-50">
           {(() => {
@@ -258,7 +253,6 @@ export default function PlanetGalaxy() {
         </div>
       )}
 
-      {/* Galaxy info */}
       <div className="absolute bottom-4 left-4 bg-black/80 border border-green-400/50 backdrop-blur-sm rounded-lg p-3">
         <div className="text-green-400 font-mono text-sm">
           Galáxia Planetario
@@ -271,7 +265,6 @@ export default function PlanetGalaxy() {
         </div>
       </div>
 
-      {/* Empty state */}
       {planets.length === 0 && !isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">

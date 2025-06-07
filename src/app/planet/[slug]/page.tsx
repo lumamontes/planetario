@@ -2,7 +2,8 @@ import { createClient } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
 import PlanetViewer from './PlanetViewer'
 
-export default async function PlanetPage({ params }: { params: { slug: string } }) {
+export default async function PlanetPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
   const supabase = await createClient()
 
   // Get current user
@@ -12,7 +13,7 @@ export default async function PlanetPage({ params }: { params: { slug: string } 
   const { data: planet, error: planetError } = await supabase
     .from('planets')
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .eq('is_public', true)
     .single()
 

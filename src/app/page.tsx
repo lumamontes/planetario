@@ -1,5 +1,5 @@
 import PlanetGalaxy from "@/components/PlanetGalaxy";
-import TerminalAuthForm from "@/components/TerminalAuthForm";
+import AuthForm from "@/components/AuthForm";
 
 export default function Home() {
   return (
@@ -9,7 +9,7 @@ export default function Home() {
         <PlanetGalaxy />
       </aside>
       
-      {/* Right side - Terminal auth form */}
+      {/* Right side - Auth form */}
       <div className="w-1/2 h-full bg-black flex flex-col justify-center items-center p-8 relative">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-5">
@@ -28,26 +28,25 @@ export default function Home() {
         <div className="relative z-10 w-full max-w-md">
           {/* Header */}
           <div className="mb-8 text-center">
-            <div className="text-green-400 font-mono text-4xl font-bold mb-2">
+            <div className="text-green-400 font-bold text-4xl mb-2">
               PLANETARIO
             </div>
-            <div className="text-green-600 font-mono text-sm mb-4">
-              Plataforma de criação de universos digitais
+            <div className="text-green-600 text-sm mb-4">
+              BETA
             </div>
             <div className="border border-green-400 p-4 bg-black/50 rounded">
               <div className="text-green-300 text-sm leading-relaxed">
-                Bem-vindo à galáxia de mundos digitais. Cada planeta representa um universo único criado por nossa comunidade. 
-                <span className="text-green-400 font-bold"> Entre para acessar seu universo</span> ou explore a galáxia à esquerda.
+                 tururu
               </div>
             </div>
           </div>
 
           {/* Auth Form */}
-          <TerminalAuthForm mode="signin" />
+          <AuthForm mode="signin" />
           
           {/* Footer info */}
           <div className="mt-8 text-center">
-            <div className="text-green-600 font-mono text-xs">
+            <div className="text-green-600 text-xs">
               Explore a galáxia • Crie seu planeta • Compartilhe seu universo
             </div>
           </div>

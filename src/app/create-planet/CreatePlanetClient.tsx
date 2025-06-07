@@ -39,6 +39,18 @@ const defaultLayout: PlanetLayout = {
   padding: '16px'
 }
 
+const funnyPlaceholders = [
+  'tuts tuts tuts',
+  'lol',
+  'uiuiui',
+  'tururu',
+  'wtf wtf wtf',
+  'minhas coisas',
+  'só mais um planeta',
+  'meu planeta',
+];
+
+
 export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
   const [activeTab, setActiveTab] = useState<'basic' | 'theme' | 'layout'>('basic')
   const [loading, setLoading] = useState(false)
@@ -50,6 +62,12 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [isPublic, setIsPublic] = useState(true)
+
+  // Quick content creation
+  const [quickContent, setQuickContent] = useState({
+    type: 'text' as 'text' | 'image' | 'link',
+    content: ''
+  })
 
   // Theme settings
   const [theme, setTheme] = useState<PlanetTheme>(defaultTheme)
@@ -93,6 +111,43 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
 
       if (planetError) throw planetError
 
+      // Create first content block if user added quick content
+      if (quickContent.content.trim()) {
+        let contentData: any = {}
+        
+        switch (quickContent.type) {
+          case 'text':
+            contentData = { text: quickContent.content.trim() }
+            break
+          case 'link':
+            contentData = { 
+              url: quickContent.content.trim(),
+              title: 'Meu primeiro link'
+            }
+            break
+          case 'image':
+            contentData = { 
+              images: [{ 
+                url: quickContent.content.trim(), 
+                alt: 'Primeira imagem',
+                caption: ''
+              }]
+            }
+            break
+        }
+
+        await supabase
+          .from('planet_content')
+          .insert({
+            planet_id: planet.id,
+            type: quickContent.type,
+            title: `Primeiro ${quickContent.type === 'text' ? 'texto' : quickContent.type === 'link' ? 'link' : 'imagem'}`,
+            content: contentData,
+            position: 0,
+            is_visible: true
+          })
+      }
+
       // Redirect to planet editor
       router.push(`/planet/${planet.slug}/edit`)
     } catch (err: any) {
@@ -102,18 +157,8 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
     }
   }
 
-  const updateThemeColor = (key: keyof PlanetTheme['colors'], value: string) => {
-    setTheme(prev => ({
-      ...prev,
-      colors: {
-        ...prev.colors,
-        [key]: value
-      }
-    }))
-  }
-
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono">
+    <div className="min-h-screen bg-black text-green-400">
       {/* Header */}
       <header className="border-b border-green-400 bg-black">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -125,49 +170,43 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
               >
                 ← Voltar
               </button>
-              <h1 className="text-xl font-bold">Criar Planeta</h1>
+              <h1 className="text-2xl font-bold">Criar Planeta</h1>
             </div>
-            <div className="text-sm">
-              Usuário: {user.email}
+            <div className="text-sm text-green-600">
+              {user.email}
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Window */}
-        <div className="border border-green-400 bg-black rounded-lg">
-          {/* Window Title Bar with dots */}
-          <div className="border-b border-green-400 bg-green-400 text-black px-4 py-2 flex items-center justify-between rounded-t-lg">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span className="font-bold ml-2">Configuração de Planeta</span>
-            </div>
-            <div className="text-sm">
-              Status: {loading ? 'Processando...' : 'Pronto'}
-            </div>
+        {/* Main Form */}
+        <div className="bg-black/90 border border-green-400 rounded-lg">
+          {/* Header */}
+          <div className="border-b border-green-400 p-6">
+            <h2 className="text-2xl font-bold text-green-400 mb-2">Configuração do Planeta</h2>
+            <p className="text-green-600">Configure as informações babys</p>
           </div>
 
-          {/* Tab Bar */}
-          <div className="border-b border-green-400 bg-black">
+          {/* Tab Navigation */}
+          <div className="border-b border-green-400">
             <div className="flex">
               {[
-                { id: 'basic', label: 'Informações Básicas' },
-                { id: 'theme', label: 'Tema' },
-                { id: 'layout', label: 'Layout' }
+                { id: 'basic', label: 'Informações Básicas', icon: '📝' },
+                { id: 'theme', label: 'Aparência', icon: '🎨' },
+                { id: 'layout', label: 'Layout', icon: '📐' }
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-6 py-3 border-r border-green-400 transition-colors ${
+                  className={`flex-1 px-6 py-4 border-r border-green-400 last:border-r-0 transition-colors flex items-center justify-center space-x-2 ${
                     activeTab === tab.id
                       ? 'bg-green-400 text-black'
                       : 'bg-black text-green-400 hover:bg-green-900'
                   }`}
                 >
-                  {tab.label}
+                  <span>{tab.icon}</span>
+                  <span className="font-medium">{tab.label}</span>
                 </button>
               ))}
             </div>
@@ -178,15 +217,15 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
             {activeTab === 'basic' && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-green-400 mb-2 font-bold">
-                    Nome do planeta:
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Nome do planeta
                   </label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300 rounded"
-                    placeholder="Digite o nome do planeta..."
+                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
+                    placeholder="Meu planeta incrível"
                     maxLength={50}
                   />
                   <div className="text-xs text-green-600 mt-1">
@@ -195,14 +234,14 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
                 </div>
 
                 <div>
-                  <label className="block text-green-400 mb-2 font-bold">
-                    Descrição:
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Descrição (opcional)
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300 h-24 resize-none rounded"
-                    placeholder="Descreva seu universo digital..."
+                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 h-20 resize-none rounded"
+                    placeholder="Um lugar especial no universo digital..."
                     maxLength={200}
                   />
                   <div className="text-xs text-green-600 mt-1">
@@ -211,28 +250,92 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
                 </div>
 
                 <div>
-                  <label className="block text-green-400 mb-2 font-bold">
-                    Visibilidade:
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Visibilidade
                   </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2">
+                  <div className="space-y-3">
+                    <label className="flex items-center space-x-3 p-3 border border-green-400/30 rounded hover:border-green-400 transition-colors cursor-pointer">
                       <input
                         type="radio"
                         checked={isPublic}
                         onChange={() => setIsPublic(true)}
                         className="text-green-400"
                       />
-                      <span>🌍 Público - Visível na galáxia e descobrível</span>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span>🌍</span>
+                          <span className="font-medium">Público</span>
+                        </div>
+                        <div className="text-sm text-green-600">Visível na galáxia e descobrível por outros usuários</div>
+                      </div>
                     </label>
-                    <label className="flex items-center space-x-2">
+                    <label className="flex items-center space-x-3 p-3 border border-green-400/30 rounded hover:border-green-400 transition-colors cursor-pointer">
                       <input
                         type="radio"
                         checked={!isPublic}
                         onChange={() => setIsPublic(false)}
                         className="text-green-400"
                       />
-                      <span>🔒 Privado - Apenas acessível via link direto</span>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span>🔒</span>
+                          <span className="font-medium">Privado</span>
+                        </div>
+                        <div className="text-sm text-green-600">Apenas acessível via link direto</div>
+                      </div>
                     </label>
+                  </div>
+                </div>
+
+                {/* Quick Content Creation */}
+                <div className="border-t border-green-400/30 pt-6">
+                  <h3 className="text-green-400 font-medium mb-4">Adicionar primeiro conteúdo (opcional)</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-green-400 mb-2 font-medium">
+                        Tipo de conteúdo
+                      </label>
+                      <select
+                        value={quickContent.type}
+                        onChange={(e) => setQuickContent(prev => ({ ...prev, type: e.target.value as any, content: '' }))}
+                        className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
+                      >
+                        <option value="text">📝 Texto</option>
+                        <option value="link">🔗 Link</option>
+                        <option value="image">🖼️ Imagem (URL)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-green-400 mb-2 font-medium">
+                        {quickContent.type === 'text' && 'Seu primeiro texto'}
+                        {quickContent.type === 'link' && 'URL do link'}
+                        {quickContent.type === 'image' && 'URL da imagem'}
+                      </label>
+                      {quickContent.type === 'text' ? (
+                        <textarea
+                          value={quickContent.content}
+                          onChange={(e) => setQuickContent(prev => ({ ...prev, content: e.target.value }))}
+                          className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 h-20 resize-none rounded"
+                          placeholder="uiuiui"
+                        />
+                      ) : (
+                        <input
+                          type="url"
+                          value={quickContent.content}
+                          onChange={(e) => setQuickContent(prev => ({ ...prev, content: e.target.value }))}
+                          className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
+                          placeholder={
+                            quickContent.type === 'link' 
+                              ? 'https://meusite.com' 
+                              : 'https://exemplo.com/imagem.jpg'
+                          }
+                        />
+                      )}
+                      <div className="text-xs text-green-600 mt-1">
+                        adicione mais conteúdo depois no editor :D
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -241,8 +344,8 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
             {activeTab === 'theme' && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-green-400 mb-2 font-bold">
-                    Esquema de cores:
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Esquema de cores
                   </label>
                   <select
                     value={theme.colors?.primary || '#00ff00'}
@@ -250,7 +353,7 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
                       ...prev, 
                       colors: { ...prev.colors, primary: e.target.value }
                     }))}
-                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300 rounded"
+                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
                   >
                     <option value="#00ff00">🟢 Terminal Verde</option>
                     <option value="#ff00ff">🌈 Cyberpunk Neon</option>
@@ -260,8 +363,8 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
                 </div>
 
                 <div>
-                  <label className="block text-green-400 mb-2 font-bold">
-                    Fonte:
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Fonte
                   </label>
                   <select
                     value={theme.fonts?.body || 'Monaco, "Courier New", monospace'}
@@ -269,7 +372,7 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
                       ...prev, 
                       fonts: { ...prev.fonts, body: e.target.value, heading: e.target.value }
                     }))}
-                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300 rounded"
+                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
                   >
                     <option value='Monaco, "Courier New", monospace'>🔤 Monospace</option>
                     <option value='"Helvetica Neue", Arial, sans-serif'>📝 Sans Serif</option>
@@ -278,17 +381,23 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
                 </div>
 
                 <div>
-                  <label className="block text-green-400 mb-2 font-bold">
-                    Efeitos visuais:
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Efeitos visuais
                   </label>
-                  <label className="flex items-center space-x-2">
+                  <label className="flex items-center space-x-3 p-3 border border-green-400/30 rounded hover:border-green-400 transition-colors cursor-pointer">
                     <input
                       type="checkbox"
                       checked={theme.shadows || false}
                       onChange={(e) => setTheme(prev => ({ ...prev, shadows: e.target.checked }))}
                       className="text-green-400"
                     />
-                    <span>✨ Habilitar sombras e efeitos</span>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span>✨</span>
+                        <span className="font-medium">Habilitar sombras e efeitos</span>
+                      </div>
+                      <div className="text-sm text-green-600">Adiciona profundidade visual ao seu planeta</div>
+                    </div>
                   </label>
                 </div>
               </div>
@@ -297,13 +406,13 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
             {activeTab === 'layout' && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-green-400 mb-2 font-bold">
-                    Estilo de layout:
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Estilo de layout
                   </label>
                   <select
                     value={layout.type}
                     onChange={(e) => setLayout(prev => ({ ...prev, type: e.target.value as any }))}
-                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300 rounded"
+                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
                   >
                     <option value="grid">📱 Grade - Layout em grade responsiva</option>
                     <option value="list">📋 Lista - Layout vertical simples</option>
@@ -312,13 +421,13 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
                 </div>
 
                 <div>
-                  <label className="block text-green-400 mb-2 font-bold">
-                    Largura máxima:
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Largura máxima
                   </label>
                   <select
                     value={layout.maxWidth}
                     onChange={(e) => setLayout(prev => ({ ...prev, maxWidth: e.target.value }))}
-                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300 rounded"
+                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
                   >
                     <option value="600px">📱 600px - Estreito</option>
                     <option value="800px">💻 800px - Médio</option>
@@ -330,16 +439,26 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
             )}
 
             {error && (
-              <div className="mt-6 p-3 border border-red-500 bg-red-900 bg-opacity-20 text-red-400 rounded">
-                Erro: {error}
+              <div className="mt-6 p-4 border border-red-500 bg-red-900/20 text-red-400 rounded">
+                <div className="flex items-center space-x-2">
+                  <span>⚠️</span>
+                  <span>Erro: {error}</span>
+                </div>
               </div>
             )}
           </div>
 
           {/* Action Bar */}
-          <div className="border-t border-green-400 bg-black p-4 flex justify-between items-center rounded-b-lg">
+          <div className="border-t border-green-400 p-6 flex justify-between items-center">
             <div className="text-green-600 text-sm">
-              {loading ? 'Processando...' : 'Pronto para criar'}
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Criando planeta...</span>
+                </div>
+              ) : (
+                'Pronto para criar seu planeta'
+              )}
             </div>
             <div className="flex space-x-3">
               <button
@@ -352,9 +471,10 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
               <button
                 onClick={handleCreatePlanet}
                 disabled={loading || !name.trim()}
-                className="px-6 py-2 bg-green-400 text-black hover:bg-green-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
+                className="flex items-center space-x-2 px-6 py-2 bg-green-400 text-black hover:bg-green-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded"
               >
-                {loading ? 'Criando...' : '🚀 Criar Planeta'}
+                <span>🚀</span>
+                <span>{loading ? 'Criando...' : 'Criar Planeta'}</span>
               </button>
             </div>
           </div>

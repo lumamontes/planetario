@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import PlanetEditor from './PlanetEditor'
+import PlanetEditForm from '../PlanetEditForm'
 
 interface PageProps {
   params: Promise<{
@@ -8,7 +8,7 @@ interface PageProps {
   }>
 }
 
-export default async function EditPlanetPage({ params }: PageProps) {
+export default async function PlanetSettingsPage({ params }: PageProps) {
   const { slug } = await params
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -29,22 +29,7 @@ export default async function EditPlanetPage({ params }: PageProps) {
     redirect('/planets')
   }
 
-  // Fetch planet content
-  const { data: content, error: contentError } = await supabase
-    .from('planet_content')
-    .select('*')
-    .eq('planet_id', planet.id)
-    .order('position', { ascending: true })
-
-  if (contentError) {
-    console.error('Error fetching content:', contentError)
-  }
-
   return (
-    <PlanetEditor 
-      planet={planet} 
-      initialContent={content || []} 
-      user={user} 
-    />
+    <PlanetEditForm planet={planet} />
   )
 } 

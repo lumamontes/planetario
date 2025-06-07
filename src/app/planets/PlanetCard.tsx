@@ -66,7 +66,7 @@ export default function PlanetCard({ planet }: PlanetCardProps) {
       router.refresh()
     } catch (error) {
       console.error('Error deleting planet:', error)
-      alert('Error deleting planet. Please try again.')
+      alert('Erro ao excluir planeta. Tente novamente.')
     } finally {
       setIsDeleting(false)
       setShowDeleteConfirm(false)
@@ -85,12 +85,12 @@ export default function PlanetCard({ planet }: PlanetCardProps) {
       router.refresh()
     } catch (error) {
       console.error('Error updating planet visibility:', error)
-      alert('Error updating planet visibility. Please try again.')
+      alert('Erro ao atualizar visibilidade do planeta. Tente novamente.')
     }
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -98,121 +98,140 @@ export default function PlanetCard({ planet }: PlanetCardProps) {
   }
 
   return (
-    <div className="border border-green-400 bg-black">
+    <div className="bg-black/90 border border-green-400 rounded-lg overflow-hidden hover:border-green-300 transition-colors">
       {/* Planet Header */}
-      <div className="bg-green-400 text-black px-3 py-2">
+      <div className="bg-green-400 text-black px-4 py-3">
         <div className="flex justify-between items-center">
-          <span className="font-bold truncate">{planet.name}</span>
-          <span className="text-xs">
-            {planet.is_public ? '[PUBLIC]' : '[PRIVATE]'}
+          <h3 className="font-bold text-lg truncate">{planet.name}</h3>
+          <span className={`text-xs px-2 py-1 rounded ${
+            planet.is_public 
+              ? 'bg-green-600 text-white' 
+              : 'bg-gray-600 text-white'
+          }`}>
+            {planet.is_public ? 'Público' : 'Privado'}
           </span>
         </div>
       </div>
 
       {/* Planet Info */}
-      <div className="p-4 space-y-3">
-        <div className="text-sm space-y-1">
-          <p>&gt; SLUG: /{planet.slug}</p>
-          <p>&gt; VIEWS: {planet.view_count}</p>
-          <p>&gt; LIKES: {planet.like_count}</p>
-          <p>&gt; CONTENT: {planet.content_count} blocks</p>
-          <p>&gt; CREATED: {formatDate(planet.created_at)}</p>
-          <p>&gt; UPDATED: {formatDate(planet.updated_at)}</p>
-        </div>
-
+      <div className="p-4 space-y-4">
+        {/* Description */}
         {planet.description && (
-          <div className="border-t border-green-400 pt-3">
-            <p className="text-xs text-green-300">
-              &gt; DESC: {planet.description}
-            </p>
-          </div>
+          <p className="text-green-300 text-sm leading-relaxed">
+            {planet.description}
+          </p>
         )}
 
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="flex items-center space-x-2">
+            <span className="text-green-600">👁️</span>
+            <span className="text-green-400">{planet.view_count} visualizações</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-green-600">❤️</span>
+            <span className="text-green-400">{planet.like_count} curtidas</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-green-600">📦</span>
+            <span className="text-green-400">{planet.content_count} blocos</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-green-600">📅</span>
+            <span className="text-green-400">{formatDate(planet.created_at)}</span>
+          </div>
+        </div>
+
+        {/* Planet URL */}
+        <div className="bg-black/50 border border-green-400/30 rounded p-2">
+          <div className="text-xs text-green-600 mb-1">URL do planeta:</div>
+          <div className="text-green-400 text-sm font-mono">/{planet.slug}</div>
+        </div>
+
         {/* Action Buttons */}
-        <div className="border-t border-green-400 pt-3 space-y-2">
+        <div className="space-y-3 pt-2 border-t border-green-400/30">
+          {/* Primary Actions */}
           <div className="grid grid-cols-2 gap-2">
             <Link
               href={`/planet/${planet.slug}`}
-              className="text-center py-2 px-3 border border-green-400 hover:bg-green-400 hover:text-black transition-colors text-xs"
+              className="flex items-center justify-center space-x-2 py-2 px-3 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors text-sm rounded"
             >
-              [VIEW] 3D
+              <span>🌍</span>
+              <span>Visualizar</span>
             </Link>
             <Link
               href={`/planet/${planet.slug}/edit`}
-              className="text-center py-2 px-3 border border-green-400 hover:bg-green-400 hover:text-black transition-colors text-xs"
+              className="flex items-center justify-center space-x-2 py-2 px-3 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-colors text-sm rounded"
             >
-              [EDIT] CONFIG
+              <span>✏️</span>
+              <span>Editar</span>
             </Link>
           </div>
 
+          {/* Secondary Actions */}
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={toggleVisibility}
-              className="py-2 px-3 border border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black transition-colors text-xs"
+              className={`flex items-center justify-center space-x-2 py-2 px-3 border transition-colors text-sm rounded ${
+                planet.is_public
+                  ? 'border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black'
+                  : 'border-green-400 text-green-400 hover:bg-green-400 hover:text-black'
+              }`}
             >
-              {planet.is_public ? '[HIDE]' : '[SHOW]'} PUBLIC
+              <span>{planet.is_public ? '🔒' : '🌍'}</span>
+              <span>{planet.is_public ? 'Tornar Privado' : 'Tornar Público'}</span>
             </button>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="py-2 px-3 border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition-colors text-xs"
+              className="flex items-center justify-center space-x-2 py-2 px-3 border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition-colors text-sm rounded"
               disabled={isDeleting}
             >
-              {isDeleting ? '[DELETING...]' : '[DELETE]'}
+              <span>🗑️</span>
+              <span>{isDeleting ? 'Excluindo...' : 'Excluir'}</span>
             </button>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-2 gap-2">
-            <Link
-              href={`/planet/${planet.slug}/content`}
-              className="text-center py-2 px-3 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-colors text-xs"
-            >
-              [MANAGE] CONTENT
-            </Link>
-            <Link
-              href={`/planet/${planet.slug}/analytics`}
-              className="text-center py-2 px-3 border border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-black transition-colors text-xs"
-            >
-              [VIEW] ANALYTICS
-            </Link>
           </div>
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="border border-red-400 bg-black p-6 max-w-md mx-4">
-            <div className="bg-red-400 text-black px-3 py-2 mb-4">
-              <span className="font-bold">DANGER: PLANET DELETION</span>
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4">
+          <div className="bg-black border border-red-400 rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center space-x-2 mb-4">
+              <span className="text-2xl">⚠️</span>
+              <h3 className="text-red-400 text-xl font-bold">Confirmar Exclusão</h3>
             </div>
             
             <div className="space-y-4">
-              <p className="text-red-400">
-                &gt; WARNING: This action cannot be undone!
+              <p className="text-red-300">
+                Esta ação não pode ser desfeita!
               </p>
-              <p className="text-sm">
-                &gt; Planet: {planet.name}<br/>
-                &gt; Content blocks: {planet.content_count}<br/>
-                &gt; Total views: {planet.view_count}
-              </p>
+              
+              <div className="bg-red-900/20 border border-red-400/30 rounded p-3 text-sm">
+                <div className="space-y-1">
+                  <div><span className="text-red-400">Planeta:</span> {planet.name}</div>
+                  <div><span className="text-red-400">Blocos de conteúdo:</span> {planet.content_count}</div>
+                  <div><span className="text-red-400">Total de visualizações:</span> {planet.view_count}</div>
+                </div>
+              </div>
+              
               <p className="text-red-300 text-sm">
-                All planet data, content, and analytics will be permanently destroyed.
+                Todos os dados do planeta, conteúdo e análises serão permanentemente destruídos.
               </p>
               
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white border border-red-600 transition-colors text-sm"
+                  className="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white border border-red-600 transition-colors text-sm rounded font-bold"
                 >
-                  {isDeleting ? 'DELETING...' : 'CONFIRM DELETE'}
+                  {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 py-2 px-4 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors text-sm"
+                  className="flex-1 py-2 px-4 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors text-sm rounded"
                 >
-                  CANCEL
+                  Cancelar
                 </button>
               </div>
             </div>

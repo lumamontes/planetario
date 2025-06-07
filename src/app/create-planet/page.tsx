@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import CreatePlanetClient from './CreatePlanetClient'
+import CreatePlanetClient from '@/app/create-planet/CreatePlanetClient'
 
 export default async function CreatePlanet() {
   const supabase = await createClient()

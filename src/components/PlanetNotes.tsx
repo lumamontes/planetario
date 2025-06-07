@@ -120,27 +120,27 @@ export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: Pla
   }
 
   return (
-    <div className="bg-black/95 border border-green-400 backdrop-blur-md rounded-lg p-4 max-w-md">
+    <div className="bg-black/90 border border-green-400 backdrop-blur-md rounded-lg p-4 max-w-md">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-green-400 font-bold text-lg">
-          💭 Notas do Planeta [{notes.length}]
+          💭 Notas do Planeta ({notes.length})
         </h3>
         {user && !isOwner && (
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="px-3 py-1 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors text-sm rounded"
           >
-            {showAddForm ? 'Cancelar' : '+ Adicionar Nota'}
+            {showAddForm ? 'Cancelar' : '+ Adicionar'}
           </button>
         )}
       </div>
 
       {/* Status Message */}
       {message && (
-        <div className={`border p-2 mb-4 text-xs rounded ${
+        <div className={`border p-3 mb-4 text-sm rounded ${
           messageType === 'error' 
-            ? 'border-red-400 text-red-400' 
-            : 'border-green-400 text-green-400'
+            ? 'border-red-400 text-red-400 bg-red-900/20' 
+            : 'border-green-400 text-green-400 bg-green-900/20'
         }`}>
           {message}
         </div>
@@ -148,35 +148,35 @@ export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: Pla
 
       {/* Add Note Form */}
       {showAddForm && user && !isOwner && (
-        <div className="border border-green-400 p-3 mb-4 space-y-3 rounded">
+        <div className="border border-green-400 p-4 mb-4 space-y-4 rounded bg-black/50">
           <div>
-            <label className="block text-green-400 text-xs mb-1 font-bold">
-              Conteúdo da nota:
+            <label className="block text-green-400 text-sm mb-2 font-medium">
+              Sua nota sobre este planeta
             </label>
             <textarea
               value={newNoteContent}
               onChange={(e) => setNewNoteContent(e.target.value)}
-              className="w-full bg-black border border-green-400 text-green-400 px-2 py-1 text-xs font-mono focus:outline-none focus:border-green-300 resize-none rounded"
+              className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 text-sm focus:outline-none focus:border-green-300 resize-none rounded"
               rows={3}
               maxLength={500}
-              placeholder="Adicione seus pensamentos sobre este planeta..."
+              placeholder="Compartilhe seus pensamentos sobre este planeta..."
             />
             <div className="text-xs text-green-600 mt-1">
               {newNoteContent.length}/500 caracteres
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block text-green-400 text-xs mb-1 font-bold">
-                Cor:
+              <label className="block text-green-400 text-sm mb-2 font-medium">
+                Cor da nota
               </label>
-              <div className="flex gap-1 flex-wrap">
+              <div className="flex gap-2 flex-wrap">
                 {noteColors.map((color) => (
                   <button
                     key={color.value}
                     onClick={() => setNewNoteColor(color.value)}
-                    className={`w-6 h-6 border-2 transition-all rounded ${
+                    className={`w-8 h-8 border-2 transition-all rounded ${
                       newNoteColor === color.value 
                         ? 'border-green-400 scale-110' 
                         : 'border-gray-600 hover:border-green-400'
@@ -189,16 +189,16 @@ export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: Pla
             </div>
 
             <div>
-              <label className="block text-green-400 text-xs mb-1 font-bold">
-                Visibilidade:
+              <label className="block text-green-400 text-sm mb-2 font-medium">
+                Visibilidade
               </label>
-              <div className="flex gap-2 text-xs">
+              <div className="flex flex-col gap-2 text-sm">
                 <label className="flex items-center">
                   <input
                     type="radio"
                     checked={isPublic}
                     onChange={() => setIsPublic(true)}
-                    className="mr-1"
+                    className="mr-2"
                   />
                   Pública
                 </label>
@@ -207,7 +207,7 @@ export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: Pla
                     type="radio"
                     checked={!isPublic}
                     onChange={() => setIsPublic(false)}
-                    className="mr-1"
+                    className="mr-2"
                   />
                   Privada
                 </label>
@@ -218,9 +218,9 @@ export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: Pla
           <button
             onClick={addNote}
             disabled={isSubmitting || !newNoteContent.trim()}
-            className="w-full px-3 py-2 bg-green-400 text-black font-bold hover:bg-green-300 disabled:bg-gray-600 disabled:text-gray-400 transition-colors text-sm rounded"
+            className="w-full px-4 py-2 bg-green-400 text-black font-bold hover:bg-green-300 disabled:bg-gray-600 disabled:text-gray-400 transition-colors text-sm rounded"
           >
-            {isSubmitting ? 'Adicionando...' : 'Enviar Nota'}
+            {isSubmitting ? 'Enviando...' : 'Enviar Nota'}
           </button>
         </div>
       )}
@@ -228,40 +228,47 @@ export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: Pla
       {/* Notes List */}
       <div className="space-y-3 max-h-96 overflow-y-auto">
         {isLoading ? (
-          <div className="text-green-600 text-center py-4 text-sm">
+          <div className="text-green-600 text-center py-8 text-sm">
+            <div className="w-6 h-6 border-2 border-green-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
             Carregando notas...
           </div>
         ) : notes.length === 0 ? (
-          <div className="text-green-600 text-center py-4 text-sm">
-            Nenhuma nota ainda. {user && !isOwner ? 'Seja o primeiro a adicionar uma!' : ''}
+          <div className="text-green-600 text-center py-8 text-sm">
+            <div className="text-2xl mb-2">💭</div>
+            <div>Nenhuma nota ainda.</div>
+            {user && !isOwner && (
+              <div className="text-xs mt-1">Seja o primeiro a compartilhar seus pensamentos!</div>
+            )}
           </div>
         ) : (
           notes.map((note) => (
             <div
               key={note.id}
-              className="border border-gray-600 p-3 space-y-2 rounded"
+              className="border border-gray-600 p-4 space-y-3 rounded bg-black/30"
               style={{ borderLeftColor: note.color, borderLeftWidth: '4px' }}
             >
               {/* Note Header */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   {note.avatar_url ? (
                     <img
                       src={note.avatar_url}
                       alt={note.username || 'Usuário'}
-                      className="w-5 h-5 border border-green-400 rounded"
+                      className="w-6 h-6 border border-green-400 rounded"
                     />
                   ) : (
-                    <div className="w-5 h-5 border border-green-400 bg-gray-800 flex items-center justify-center text-xs rounded">
+                    <div className="w-6 h-6 border border-green-400 bg-gray-800 flex items-center justify-center text-xs rounded">
                       ?
                     </div>
                   )}
-                  <span className="text-green-400 text-xs font-bold">
-                    {note.username || 'Anônimo'}
-                  </span>
-                  {!note.is_public && (
-                    <span className="text-yellow-400 text-xs">🔒 Privada</span>
-                  )}
+                  <div>
+                    <span className="text-green-400 text-sm font-bold">
+                      {note.username || 'Anônimo'}
+                    </span>
+                    {!note.is_public && (
+                      <span className="text-yellow-400 text-xs ml-2">🔒 Privada</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-green-600 text-xs">
@@ -270,7 +277,7 @@ export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: Pla
                   {(user?.id === note.user_id || isOwner) && (
                     <button
                       onClick={() => deleteNote(note.id)}
-                      className="text-red-400 hover:text-red-300 text-xs"
+                      className="text-red-400 hover:text-red-300 text-sm p-1"
                       title="Excluir nota"
                     >
                       ✕
@@ -291,16 +298,22 @@ export default function PlanetNotes({ planetId, planetSlug, user, isOwner }: Pla
       {/* Info for planet owners */}
       {isOwner && (
         <div className="mt-4 text-xs text-green-600 border-t border-green-400 pt-3">
-          Como dono do planeta, você pode ver todas as notas e excluir qualquer nota.
-          <br />
-          Visitantes podem adicionar notas para compartilhar seus pensamentos sobre seu planeta.
+          <div className="flex items-center space-x-1 mb-1">
+            <span>ℹ️</span>
+            <span className="font-medium">Informações para o dono do planeta:</span>
+          </div>
+          <div>• Você pode ver todas as notas e excluir qualquer uma</div>
+          <div>• Visitantes podem adicionar notas para compartilhar pensamentos sobre seu planeta</div>
         </div>
       )}
 
       {/* Info for non-logged users */}
       {!user && (
-        <div className="mt-4 text-xs text-green-600 border-t border-green-400 pt-3">
-          Entre para adicionar notas e interagir com este planeta.
+        <div className="mt-4 text-xs text-green-600 border-t border-green-400 pt-3 text-center">
+          <div className="flex items-center justify-center space-x-1">
+            <span>🔑</span>
+            <span>Entre para adicionar notas e interagir com este planeta</span>
+          </div>
         </div>
       )}
     </div>

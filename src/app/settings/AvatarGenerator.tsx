@@ -288,18 +288,18 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
   return (
     <div className="space-y-6">
       {/* Preview */}
-      <div className="border border-green-400 p-4">
-        <h4 className="text-sm mb-3">&gt; PREVIEW:</h4>
+      <div className="bg-black/50 border border-green-400/30 rounded p-4">
+        <h4 className="text-green-400 font-medium mb-3">Prévia do Avatar</h4>
         <div className="flex items-center space-x-4">
-          <div className="border border-green-400 p-2">
+          <div className="border border-green-400 rounded p-2">
             {isGenerating ? (
               <div className="w-32 h-32 flex items-center justify-center text-green-600">
-                GENERATING...
+                <div className="w-6 h-6 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : (
               <canvas
                 ref={canvasRef}
-                className="w-32 h-32 border border-green-400"
+                className="w-32 h-32 border border-green-400 rounded"
                 style={{ imageRendering: 'pixelated' }}
               />
             )}
@@ -308,16 +308,18 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
             <button
               onClick={generateAvatar}
               disabled={isGenerating}
-              className="block px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors disabled:opacity-50"
+              className="flex items-center space-x-2 px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors disabled:opacity-50 rounded"
             >
-              {isGenerating ? '[GENERATING...]' : '[REGENERATE]'}
+              <span>🔄</span>
+              <span>{isGenerating ? 'Gerando...' : 'Gerar Novo'}</span>
             </button>
             <button
               onClick={handleUseAvatar}
               disabled={!previewUrl || isGenerating}
-              className="block px-4 py-2 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-colors disabled:opacity-50"
+              className="flex items-center space-x-2 px-4 py-2 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-colors disabled:opacity-50 rounded"
             >
-              [USE] SET AS AVATAR
+              <span>✓</span>
+              <span>Usar Avatar</span>
             </button>
           </div>
         </div>
@@ -327,63 +329,64 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Style */}
         <div>
-          <label className="block text-sm mb-2">&gt; STYLE:</label>
+          <label className="block text-green-400 font-medium mb-2">Estilo</label>
           <select
             value={config.style}
             onChange={(e) => setConfig(prev => ({ ...prev, style: e.target.value as any }))}
-            className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300"
+            className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
           >
-            <option value="geometric">GEOMETRIC</option>
-            <option value="pixel">PIXEL ART</option>
-            <option value="abstract">ABSTRACT</option>
-            <option value="space">SPACE THEME</option>
+            <option value="geometric">Geométrico</option>
+            <option value="pixel">Pixel Art</option>
+            <option value="abstract">Abstrato</option>
+            <option value="space">Tema Espacial</option>
           </select>
         </div>
 
         {/* Color Scheme */}
         <div>
-          <label className="block text-sm mb-2">&gt; COLOR SCHEME:</label>
+          <label className="block text-green-400 font-medium mb-2">Esquema de Cores</label>
           <select
             value={config.colorScheme}
             onChange={(e) => setConfig(prev => ({ ...prev, colorScheme: e.target.value as any }))}
-            className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300"
+            className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
           >
-            <option value="neon">NEON</option>
-            <option value="pastel">PASTEL</option>
-            <option value="monochrome">MONOCHROME</option>
-            <option value="rainbow">RAINBOW</option>
-            <option value="terminal">TERMINAL GREEN</option>
+            <option value="neon">Neon</option>
+            <option value="pastel">Pastel</option>
+            <option value="monochrome">Monocromático</option>
+            <option value="rainbow">Arco-íris</option>
+            <option value="terminal">Verde Terminal</option>
           </select>
         </div>
 
         {/* Complexity */}
         <div>
-          <label className="block text-sm mb-2">&gt; COMPLEXITY:</label>
+          <label className="block text-green-400 font-medium mb-2">Complexidade</label>
           <select
             value={config.complexity}
             onChange={(e) => setConfig(prev => ({ ...prev, complexity: e.target.value as any }))}
-            className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300"
+            className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
           >
-            <option value="simple">SIMPLE</option>
-            <option value="medium">MEDIUM</option>
-            <option value="complex">COMPLEX</option>
+            <option value="simple">Simples</option>
+            <option value="medium">Médio</option>
+            <option value="complex">Complexo</option>
           </select>
         </div>
 
         {/* Seed */}
         <div>
-          <label className="block text-sm mb-2">&gt; SEED:</label>
+          <label className="block text-green-400 font-medium mb-2">Semente</label>
           <div className="flex space-x-2">
             <input
               type="text"
               value={config.seed}
               onChange={(e) => setConfig(prev => ({ ...prev, seed: e.target.value }))}
-              className="flex-1 bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300"
-              placeholder="Random seed..."
+              className="flex-1 bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
+              placeholder="Semente aleatória..."
             />
             <button
               onClick={randomizeSeed}
-              className="px-3 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors"
+              className="px-3 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"
+              title="Gerar semente aleatória"
             >
               🎲
             </button>
@@ -393,13 +396,13 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
 
       {/* Quick Presets */}
       <div>
-        <h4 className="text-sm mb-3">&gt; QUICK PRESETS:</h4>
+        <h4 className="text-green-400 font-medium mb-3">Presets Rápidos</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {[
-            { name: 'RETRO', style: 'pixel', colorScheme: 'neon', complexity: 'medium' },
-            { name: 'MINIMAL', style: 'geometric', colorScheme: 'monochrome', complexity: 'simple' },
-            { name: 'COSMIC', style: 'space', colorScheme: 'neon', complexity: 'complex' },
-            { name: 'RAINBOW', style: 'abstract', colorScheme: 'rainbow', complexity: 'medium' }
+            { name: 'Retrô', style: 'pixel', colorScheme: 'neon', complexity: 'medium' },
+            { name: 'Minimalista', style: 'geometric', colorScheme: 'monochrome', complexity: 'simple' },
+            { name: 'Cósmico', style: 'space', colorScheme: 'neon', complexity: 'complex' },
+            { name: 'Arco-íris', style: 'abstract', colorScheme: 'rainbow', complexity: 'medium' }
           ].map((preset) => (
             <button
               key={preset.name}
@@ -410,7 +413,7 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
                 complexity: preset.complexity as any,
                 seed: Math.random().toString(36).substring(7)
               }))}
-              className="px-3 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors text-xs"
+              className="px-3 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors text-sm rounded"
             >
               {preset.name}
             </button>
@@ -418,10 +421,12 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
         </div>
       </div>
 
-      <div className="text-xs text-green-600">
-        <p>&gt; Generated avatars are unique based on the seed value</p>
-        <p>&gt; Same seed + settings = same avatar</p>
-        <p>&gt; Share seeds with friends to create matching avatars!</p>
+      <div className="text-xs text-green-600 bg-black/30 border border-green-400/20 rounded p-3">
+        <div className="space-y-1">
+          <p>• Avatares gerados são únicos baseados no valor da semente</p>
+          <p>• Mesma semente + configurações = mesmo avatar</p>
+          <p>• Compartilhe sementes com amigos para criar avatares combinando!</p>
+        </div>
       </div>
     </div>
   )

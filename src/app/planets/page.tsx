@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
-import PlanetCard from './PlanetCard'
+import PlanetCard from '@/app/planets/PlanetCard'
 
 interface UserPlanet {
   id: string
@@ -35,63 +35,90 @@ export default async function PlanetsPage() {
   const userPlanets: UserPlanet[] = planets || []
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono">
+    <div className="min-h-screen bg-black text-green-400">
       <div className="container mx-auto px-4 py-8">
-        {/* Terminal Header */}
-        <div className="border border-green-400 mb-6">
-          <div className="bg-green-400 text-black px-4 py-2 flex justify-between items-center">
-            <span className="font-bold">PLANETARIO PLANET MANAGER v1.0</span>
-            <span>{new Date().toLocaleString()}</span>
+        {/* Header */}
+        <div className="bg-black/90 border border-green-400 rounded-lg mb-6 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-3xl font-bold text-green-400">Meus Planetas</h1>
+            <div className="text-sm text-green-600">
+              {userPlanets.length} {userPlanets.length === 1 ? 'planeta' : 'planetas'}
+            </div>
           </div>
-          <div className="p-4 border-b border-green-400">
-            <p>&gt; USER: {user.email}</p>
-            <p>&gt; PLANETS FOUND: {userPlanets.length}</p>
-            <p>&gt; STATUS: OPERATIONAL</p>
+          <div className="flex items-center space-x-6 text-sm">
+            <span><span className="text-green-600">Usuário:</span> {user.email}</span>
+            <span><span className="text-green-600">Status:</span> Conectado</span>
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="border border-green-400 p-4 mb-6">
+        <div className="bg-black/90 border border-green-400 rounded-lg p-4 mb-6">
           <div className="flex flex-wrap gap-4">
             <Link 
               href="/dashboard" 
-              className="hover:bg-green-400 hover:text-black px-3 py-1 border border-green-400 transition-colors text-sm"
+              className="flex items-center space-x-2 px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"
             >
-              [←] BACK TO DASHBOARD
+              <span>←</span>
+              <span>Voltar ao Painel</span>
             </Link>
             <Link 
               href="/create-planet" 
-              className="hover:bg-green-400 hover:text-black px-3 py-1 border border-green-400 transition-colors text-sm"
+              className="flex items-center space-x-2 px-4 py-2 bg-green-400 text-black hover:bg-green-300 transition-colors rounded font-bold"
             >
-              [+] CREATE NEW PLANET
+              <span>🪐</span>
+              <span>Criar Novo Planeta</span>
             </Link>
           </div>
         </div>
 
         {/* Planets Grid */}
         {userPlanets.length === 0 ? (
-          <div className="border border-green-400 p-8 text-center">
-            <h2 className="text-xl mb-4">&gt; NO PLANETS DETECTED</h2>
-            <p className="mb-4">Your digital universe is empty. Initialize your first planet to begin.</p>
+          <div className="bg-black/90 border border-green-400 rounded-lg p-12 text-center">
+            <div className="text-6xl mb-4">🌌</div>
+            <h2 className="text-2xl font-bold mb-4 text-green-400">Seu universo está vazio</h2>
+            <p className="text-green-600 mb-6 max-w-md mx-auto">
+              Você ainda não criou nenhum planeta. Comece sua jornada criando seu primeiro mundo digital.
+            </p>
             <Link 
               href="/create-planet"
-              className="inline-block bg-green-400 text-black px-6 py-3 hover:bg-green-300 transition-colors font-bold"
+              className="inline-flex items-center space-x-2 bg-green-400 text-black px-6 py-3 hover:bg-green-300 transition-colors font-bold rounded"
             >
-              [INITIALIZE] CREATE FIRST PLANET
+              <span>🚀</span>
+              <span>Criar Primeiro Planeta</span>
             </Link>
           </div>
         ) : (
           <>
-            <div className="border border-green-400 p-4 mb-6">
-              <h2 className="text-xl mb-4">&gt; PLANET REGISTRY</h2>
-              <div className="text-sm space-y-1">
-                <p>&gt; Total Planets: {userPlanets.length}</p>
-                <p>&gt; Public Planets: {userPlanets.filter((p: UserPlanet) => p.is_public).length}</p>
-                <p>&gt; Private Planets: {userPlanets.filter((p: UserPlanet) => !p.is_public).length}</p>
-                <p>&gt; Total Views: {userPlanets.reduce((sum: number, p: UserPlanet) => sum + p.view_count, 0)}</p>
+            {/* Stats Overview */}
+            <div className="bg-black/90 border border-green-400 rounded-lg p-6 mb-6">
+              <h2 className="text-xl font-bold mb-4 text-green-400">Visão Geral</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 border border-green-400/30 rounded">
+                  <div className="text-2xl font-bold text-green-400">{userPlanets.length}</div>
+                  <div className="text-sm text-green-600">Total de Planetas</div>
+                </div>
+                <div className="text-center p-4 border border-green-400/30 rounded">
+                  <div className="text-2xl font-bold text-green-400">
+                    {userPlanets.filter((p: UserPlanet) => p.is_public).length}
+                  </div>
+                  <div className="text-sm text-green-600">Planetas Públicos</div>
+                </div>
+                <div className="text-center p-4 border border-green-400/30 rounded">
+                  <div className="text-2xl font-bold text-green-400">
+                    {userPlanets.reduce((sum: number, p: UserPlanet) => sum + p.view_count, 0)}
+                  </div>
+                  <div className="text-sm text-green-600">Total de Visualizações</div>
+                </div>
+                <div className="text-center p-4 border border-green-400/30 rounded">
+                  <div className="text-2xl font-bold text-green-400">
+                    {userPlanets.reduce((sum: number, p: UserPlanet) => sum + p.content_count, 0)}
+                  </div>
+                  <div className="text-sm text-green-600">Blocos de Conteúdo</div>
+                </div>
               </div>
             </div>
 
+            {/* Planets Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {userPlanets.map((planet: UserPlanet) => (
                 <PlanetCard key={planet.id} planet={planet} />
@@ -101,9 +128,8 @@ export default async function PlanetsPage() {
         )}
 
         {/* Footer */}
-        <div className="mt-8 border-t border-green-400 pt-4 text-center text-sm">
-          <p>&gt; PLANETARIO PLANET MANAGER v1.0</p>
-          <p>&gt; MANAGE YOUR DIGITAL UNIVERSE</p>
+        <div className="mt-8 text-center text-sm text-green-600">
+          <p>Planetario v1.0</p>
         </div>
       </div>
     </div>

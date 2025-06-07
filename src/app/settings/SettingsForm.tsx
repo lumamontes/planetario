@@ -14,7 +14,7 @@ interface SettingsFormProps {
 }
 
 export default function SettingsForm({ user, profile }: SettingsFormProps) {
-  const [activeTab, setActiveTab] = useState<'avatar' | 'account' | 'privacy'>('avatar')
+  const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'privacy'>('profile')
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState<'success' | 'error'>('success')
@@ -127,268 +127,292 @@ export default function SettingsForm({ user, profile }: SettingsFormProps) {
   }
 
   const tabs = [
-    { id: 'avatar', label: 'PERFIL', icon: '👤' },
-    { id: 'account', label: 'CONTA', icon: '⚙️' },
-    { id: 'privacy', label: 'PRIVACIDADE', icon: '🔒' }
+    { id: 'profile', label: 'Perfil', icon: '👤' },
+    { id: 'account', label: 'Conta', icon: '⚙️' },
+    { id: 'privacy', label: 'Privacidade', icon: '🔒' }
   ]
 
   return (
-    <>
-      {/* Navigation */}
-      <div className="border border-green-400 p-4 mb-6 rounded-lg">
-        <div className="flex flex-wrap gap-4">
-          <Link 
-            href="/dashboard" 
-            className="hover:bg-green-400 hover:text-black px-3 py-1 border border-green-400 transition-colors text-sm rounded"
-          >
-            ← Voltar ao Painel
-          </Link>
-          <Link 
-            href="/planets" 
-            className="hover:bg-green-400 hover:text-black px-3 py-1 border border-green-400 transition-colors text-sm rounded"
-          >
-            🌌 Ver Meus Planetas
-          </Link>
-        </div>
-      </div>
-
-      {/* Tab Navigation - keeping window style */}
-      <div className="border border-green-400 mb-6 rounded-lg">
-        <div className="bg-green-400 text-black px-4 py-2 flex items-center rounded-t-lg">
-          <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500 mr-4"></div>
-          <span className="font-bold">Configurações</span>
-        </div>
-        <div className="flex flex-wrap">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-3 border-r border-green-400 transition-colors flex items-center space-x-2 ${
-                activeTab === tab.id
-                  ? 'bg-green-400 text-black'
-                  : 'hover:bg-green-900 text-green-400'
-              }`}
-            >
-              <span>{tab.icon}</span>
-              <span className="font-bold text-sm">{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Status Message */}
-      {message && (
-        <div className={`border p-3 mb-6 rounded ${
-          messageType === 'error' 
-            ? 'border-red-400 text-red-400' 
-            : 'border-green-400 text-green-400'
-        }`}>
-          <p>{message}</p>
-        </div>
-      )}
-
-      {/* Profile Tab (renamed from Avatar) */}
-      {activeTab === 'avatar' && (
-        <div className="border border-green-400 p-6 rounded-lg">
-          <h2 className="text-xl mb-6">Configurações do Perfil</h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username */}
-            <div>
-              <label className="block text-sm mb-2">Nome de usuário:</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300 rounded"
-                placeholder="Digite seu nome de usuário..."
-                required
-                maxLength={30}
-              />
-              <div className="text-xs text-green-600 mt-1">
-                {username.length}/30 caracteres • Apenas letras minúsculas, números e _
-              </div>
+    <div className="min-h-screen bg-black text-green-400">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="bg-black/90 border border-green-400 rounded-lg mb-6 p-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-green-400">Configurações</h1>
+            <div className="flex space-x-4">
+              <Link 
+                href="/dashboard" 
+                className="px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"
+              >
+                ← Voltar ao Painel
+              </Link>
+              <Link 
+                href="/planets" 
+                className="px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"
+              >
+                🌌 Meus Planetas
+              </Link>
             </div>
+          </div>
+        </div>
 
-            {/* Avatar Section */}
+        {/* Tab Navigation */}
+        <div className="bg-black/90 border border-green-400 rounded-lg mb-6">
+          <div className="flex">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex-1 px-6 py-4 border-r border-green-400 last:border-r-0 transition-colors flex items-center justify-center space-x-2 ${
+                  activeTab === tab.id
+                    ? 'bg-green-400 text-black'
+                    : 'hover:bg-green-900 text-green-400'
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span className="font-bold">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Status Message */}
+        {message && (
+          <div className={`border p-4 mb-6 rounded-lg ${
+            messageType === 'error' 
+              ? 'border-red-400 text-red-400 bg-red-900/20' 
+              : 'border-green-400 text-green-400 bg-green-900/20'
+          }`}>
+            <p>{message}</p>
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="bg-black/90 border border-green-400 rounded-lg p-6">
+          {/* Profile Tab */}
+          {activeTab === 'profile' && (
             <div>
-              <label className="block text-sm mb-2">Avatar:</label>
+              <h2 className="text-2xl font-bold mb-6 text-green-400">Configurações do Perfil</h2>
               
-              {/* Current Avatar Display */}
-              <div className="mb-4">
-                <div className="text-xs text-green-600 mb-2">Avatar atual:</div>
-                <div className="flex items-center space-x-4">
-                  {avatarUrl ? (
-                    <img 
-                      src={avatarUrl} 
-                      alt="Avatar atual" 
-                      className="w-16 h-16 border border-green-400 rounded"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 border border-green-400 bg-gray-800 flex items-center justify-center rounded">
-                      <span className="text-gray-400">?</span>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Username */}
+                <div>
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Nome de usuário
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
+                    placeholder="Digite seu nome de usuário..."
+                    required
+                    maxLength={30}
+                  />
+                  <div className="text-xs text-green-600 mt-1">
+                    {username.length}/30 caracteres • Apenas letras minúsculas, números e _
+                  </div>
+                </div>
+
+                {/* Avatar Section */}
+                <div>
+                  <label className="block text-green-400 mb-2 font-medium">
+                    Avatar
+                  </label>
+                  
+                  {/* Current Avatar Display */}
+                  <div className="mb-4">
+                    <div className="text-sm text-green-600 mb-2">Avatar atual:</div>
+                    <div className="flex items-center space-x-4">
+                      {avatarUrl ? (
+                        <img 
+                          src={avatarUrl} 
+                          alt="Avatar atual" 
+                          className="w-16 h-16 border border-green-400 rounded"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 border border-green-400 bg-gray-800 flex items-center justify-center rounded">
+                          <span className="text-gray-400">?</span>
+                        </div>
+                      )}
+                      <div className="text-sm text-green-600">
+                        {avatarUrl ? 'Avatar personalizado ativo' : 'Nenhum avatar definido'}
+                      </div>
                     </div>
-                  )}
-                  <div className="text-xs text-green-600">
-                    {avatarUrl ? 'Avatar personalizado ativo' : 'Nenhum avatar definido'}
+                  </div>
+
+                  {/* Avatar Upload */}
+                  <div className="mb-4">
+                    <div className="text-sm text-green-600 mb-2">Upload de arquivo:</div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={isLoading}
+                      className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 file:bg-green-400 file:text-black file:border-0 file:px-3 file:py-1 file:mr-3 file:rounded rounded"
+                    />
+                    <div className="text-sm text-green-600 mt-1">
+                      Formatos suportados: JPG, PNG, GIF • Tamanho máximo: 5MB
+                    </div>
+                  </div>
+
+                  {/* Avatar Generator */}
+                  <div>
+                    <div className="text-sm text-green-600 mb-2">Gerador de avatar:</div>
+                    <AvatarGenerator onAvatarGenerated={setAvatarUrl} />
+                  </div>
+                </div>
+
+                <div className="border-t border-green-400 pt-6">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3 px-4 bg-green-400 text-black font-bold hover:bg-green-300 disabled:bg-gray-600 disabled:text-gray-400 transition-colors rounded"
+                  >
+                    {isLoading ? 'Salvando...' : 'Salvar Perfil'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Account Tab */}
+          {activeTab === 'account' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-green-400">Informações da Conta</h2>
+              
+              <div className="space-y-6">
+                {/* Account Info */}
+                <div>
+                  <h3 className="text-lg font-bold mb-4 text-green-400">Detalhes da conta</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 border border-green-400/30 rounded">
+                      <div className="text-sm text-green-600">Email</div>
+                      <div className="font-medium">{user.email}</div>
+                    </div>
+                    <div className="p-4 border border-green-400/30 rounded">
+                      <div className="text-sm text-green-600">ID do usuário</div>
+                      <div className="font-medium text-xs">{user.id}</div>
+                    </div>
+                    <div className="p-4 border border-green-400/30 rounded">
+                      <div className="text-sm text-green-600">Conta criada</div>
+                      <div className="font-medium">{new Date(user.created_at).toLocaleDateString('pt-BR')}</div>
+                    </div>
+                    <div className="p-4 border border-green-400/30 rounded">
+                      <div className="text-sm text-green-600">Último login</div>
+                      <div className="font-medium">
+                        {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString('pt-BR') : 'Nunca'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Security */}
+                <div>
+                  <h3 className="text-lg font-bold mb-4 text-green-400">Segurança</h3>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const { error } = await supabase.auth.resetPasswordForEmail(user.email!, {
+                          redirectTo: `${window.location.origin}/auth/callback?next=/settings`
+                        })
+                        if (error) throw error
+                        setMessage('Email de redefinição de senha enviado!')
+                        setMessageType('success')
+                      } catch (error: any) {
+                        setMessage('Erro ao enviar email: ' + error.message)
+                        setMessageType('error')
+                      }
+                    }}
+                    className="flex items-center space-x-2 px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"
+                  >
+                    <span>🔑</span>
+                    <span>Alterar Senha</span>
+                  </button>
+                </div>
+
+                {/* Data Export */}
+                <div>
+                  <h3 className="text-lg font-bold mb-4 text-green-400">Dados</h3>
+                  <button
+                    onClick={() => {
+                      // TODO: Implement data export
+                      alert('Funcionalidade de exportação de dados em breve!')
+                    }}
+                    className="flex items-center space-x-2 px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"
+                  >
+                    <span>📦</span>
+                    <span>Baixar Meus Dados</span>
+                  </button>
+                  <div className="text-sm text-green-600 mt-2">
+                    Inclui perfil, planetas, conteúdo e dados analíticos
                   </div>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Avatar Upload */}
-              <div className="mb-4">
-                <div className="text-xs text-green-600 mb-2">Upload de arquivo:</div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  disabled={isLoading}
-                  className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 font-mono focus:outline-none focus:border-green-300 file:bg-green-400 file:text-black file:border-0 file:px-3 file:py-1 file:mr-3 file:rounded rounded"
-                />
-                <div className="text-xs text-green-600 mt-1">
-                  Formatos suportados: JPG, PNG, GIF • Tamanho máximo: 5MB
+          {/* Privacy Tab */}
+          {activeTab === 'privacy' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-green-400">Privacidade e Segurança</h2>
+              
+              <div className="space-y-6">
+                {/* Data Usage */}
+                <div>
+                  <h3 className="text-lg font-bold mb-4 text-green-400">Coleta de dados</h3>
+                  <div className="space-y-2 text-sm">
+                    <p>• Coletamos análises básicas sobre visitas aos planetas (IP, país, referência)</p>
+                    <p>• Estes dados ajudam você a entender sua audiência</p>
+                    <p>• Nenhuma informação pessoal é compartilhada com terceiros</p>
+                    <p>• Você pode exportar ou excluir seus dados a qualquer momento</p>
+                  </div>
+                </div>
+
+                {/* Platform Usage */}
+                <div>
+                  <h3 className="text-lg font-bold mb-4 text-green-400">Uso da plataforma</h3>
+                  <div className="space-y-2 text-sm">
+                    <p>• Seus planetas podem ser públicos (descobríveis) ou privados (apenas link direto)</p>
+                    <p>• Nome de usuário e avatar são usados para identificação do criador</p>
+                    <p>• Todo conteúdo que você cria pertence a você</p>
+                  </div>
+                </div>
+
+                {/* Danger Zone */}
+                <div className="border border-red-400 p-6 rounded-lg bg-red-900/10">
+                  <h3 className="text-red-400 text-lg font-bold mb-4 flex items-center space-x-2">
+                    <span>⚠️</span>
+                    <span>Zona de Perigo</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="text-sm text-red-300">
+                      <p>AVISO: Estas ações não podem ser desfeitas!</p>
+                    </div>
+                    
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={isLoading}
+                      className="flex items-center space-x-2 px-4 py-2 border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition-colors disabled:opacity-50 rounded"
+                    >
+                      <span>🗑️</span>
+                      <span>{isLoading ? 'Excluindo...' : 'Excluir Conta'}</span>
+                    </button>
+                    
+                    <div className="text-xs text-red-400">
+                      <p>Isso excluirá permanentemente:</p>
+                      <p>• Sua conta e todos os dados pessoais</p>
+                      <p>• Todos os seus planetas e seu conteúdo</p>
+                      <p>• Todas as análises e dados de visitantes</p>
+                      <p>• Todos os arquivos de mídia enviados</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* Avatar Generator */}
-              <div>
-                <div className="text-xs text-green-600 mb-2">Gerador de avatar:</div>
-                <AvatarGenerator onAvatarGenerated={setAvatarUrl} />
-              </div>
             </div>
-
-            <div className="border-t border-green-400 pt-4">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 px-4 bg-green-400 text-black font-bold hover:bg-green-300 disabled:bg-gray-600 disabled:text-gray-400 transition-colors rounded"
-              >
-                {isLoading ? 'Salvando...' : 'Salvar Perfil'}
-              </button>
-            </div>
-          </form>
+          )}
         </div>
-      )}
-
-      {/* Account Tab */}
-      {activeTab === 'account' && (
-        <div className="border border-green-400 p-6 rounded-lg">
-          <h2 className="text-xl mb-6">Informações da Conta</h2>
-          
-          <div className="space-y-6">
-            {/* Account Info */}
-            <div>
-              <h3 className="text-lg mb-4">Detalhes da conta:</h3>
-              <div className="space-y-2 text-sm">
-                <p>Email: {user.email}</p>
-                <p>ID do usuário: {user.id}</p>
-                <p>Conta criada: {new Date(user.created_at).toLocaleDateString('pt-BR')}</p>
-                <p>Último login: {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString('pt-BR') : 'Nunca'}</p>
-              </div>
-            </div>
-
-            {/* Password Reset */}
-            <div>
-              <h3 className="text-lg mb-4">Segurança:</h3>
-              <button
-                onClick={async () => {
-                  try {
-                    const { error } = await supabase.auth.resetPasswordForEmail(user.email!, {
-                      redirectTo: `${window.location.origin}/auth/callback?next=/settings`
-                    })
-                    if (error) throw error
-                    setMessage('Email de redefinição de senha enviado!')
-                    setMessageType('success')
-                  } catch (error: any) {
-                    setMessage('Erro ao enviar email: ' + error.message)
-                    setMessageType('error')
-                  }
-                }}
-                className="px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"
-              >
-                🔑 Alterar Senha
-              </button>
-            </div>
-
-            {/* Data Export */}
-            <div>
-              <h3 className="text-lg mb-4">Dados:</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    // TODO: Implement data export
-                    alert('Funcionalidade de exportação de dados em breve!')
-                  }}
-                  className="block px-4 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"
-                >
-                  📦 Baixar Meus Dados
-                </button>
-                <div className="text-xs text-green-600">
-                  Inclui perfil, planetas, conteúdo e dados analíticos
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Privacy Tab */}
-      {activeTab === 'privacy' && (
-        <div className="border border-green-400 p-6 rounded-lg">
-          <h2 className="text-xl mb-6">Privacidade e Segurança</h2>
-          
-          <div className="space-y-6">
-            {/* Data Usage */}
-            <div>
-              <h3 className="text-lg mb-4">Coleta de dados:</h3>
-              <div className="space-y-2 text-sm">
-                <p>• Coletamos análises básicas sobre visitas aos planetas (IP, país, referência)</p>
-                <p>• Estes dados ajudam você a entender sua audiência</p>
-                <p>• Nenhuma informação pessoal é compartilhada com terceiros</p>
-                <p>• Você pode exportar ou excluir seus dados a qualquer momento</p>
-              </div>
-            </div>
-
-            {/* Platform Usage */}
-            <div>
-              <h3 className="text-lg mb-4">Uso da plataforma:</h3>
-              <div className="space-y-2 text-sm">
-                <p>• Seus planetas podem ser públicos (descobríveis) ou privados (apenas link direto)</p>
-                <p>• Nome de usuário e avatar são usados para identificação do criador</p>
-                <p>• Todo conteúdo que você cria pertence a você</p>
-              </div>
-            </div>
-
-            {/* Danger Zone */}
-            <div className="border border-red-400 p-4 rounded-lg">
-              <h3 className="text-red-400 text-lg mb-4">⚠️ Zona de Perigo</h3>
-              <div className="space-y-4">
-                <div className="text-sm text-red-300">
-                  <p>AVISO: Estas ações não podem ser desfeitas!</p>
-                </div>
-                
-                <button
-                  onClick={handleDeleteAccount}
-                  disabled={isLoading}
-                  className="px-4 py-2 border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition-colors disabled:opacity-50 rounded"
-                >
-                  {isLoading ? 'Excluindo...' : '🗑️ Excluir Conta'}
-                </button>
-                
-                <div className="text-xs text-red-400">
-                  <p>Isso excluirá permanentemente:</p>
-                  <p>• Sua conta e todos os dados pessoais</p>
-                  <p>• Todos os seus planetas e seu conteúdo</p>
-                  <p>• Todas as análises e dados de visitantes</p>
-                  <p>• Todos os arquivos de mídia enviados</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+      </div>
+    </div>
   )
 } 

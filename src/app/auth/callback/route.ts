@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         // Check if user has a profile, if not the trigger should create one
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, username')
           .eq('id', data.user.id)
           .single()
 
@@ -53,6 +53,67 @@ export async function GET(request: NextRequest) {
           console.log('No profile found, should be created by trigger')
           // Wait a moment for the trigger to create the profile
           await new Promise(resolve => setTimeout(resolve, 1000))
+          
+          // Check again for the profile
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('id, username')
+            .eq('id', data.user.id)
+            .single()
+          
+          // If we have a username in user metadata and no username set in profile, update it
+          if (newProfile && !newProfile.username && data.user.user_metadata?.username) {
+            console.log('Updating profile with username from metadata:', data.user.user_metadata.username)
+            
+            // Check if username is already taken
+            const { data: existingUser } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('username', data.user.user_metadata.username)
+              .single()
+            
+            if (!existingUser) {
+              // Username is available, update the profile
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ username: data.user.user_metadata.username })
+                .eq('id', data.user.id)
+              
+              if (updateError) {
+                console.error('Error updating profile with username:', updateError)
+              } else {
+                console.log('Profile updated with username successfully')
+              }
+            } else {
+              console.log('Username already taken, user will need to choose another')
+            }
+          }
+        } else if (profile && !profile.username && data.user.user_metadata?.username) {
+          // Profile exists but no username set, try to set it from metadata
+          console.log('Updating existing profile with username from metadata:', data.user.user_metadata.username)
+          
+          // Check if username is already taken
+          const { data: existingUser } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('username', data.user.user_metadata.username)
+            .single()
+          
+          if (!existingUser) {
+            // Username is available, update the profile
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ username: data.user.user_metadata.username })
+              .eq('id', data.user.id)
+            
+            if (updateError) {
+              console.error('Error updating profile with username:', updateError)
+            } else {
+              console.log('Profile updated with username successfully')
+            }
+          } else {
+            console.log('Username already taken, user will need to choose another')
+          }
         }
 
         console.log('Redirecting to:', `${origin}${next}`)

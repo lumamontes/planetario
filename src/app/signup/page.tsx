@@ -5,12 +5,12 @@ export default function SignUp() {
   return (
     <main className="flex flex-row w-full h-screen">
       {/* Left side - Galaxy of planets */}
-      <aside className="w-1/2 h-full relative">
+      <aside className="w-full hidden md:w-1/2 h-full relative">
         <PlanetGalaxy />
       </aside>
       
       {/* Right side - Auth form */}
-      <div className="w-1/2 h-full bg-black flex flex-col justify-center items-center p-8 relative">
+      <div className="w-full md:w-1/2 h-full bg-black flex flex-col justify-center items-center p-8 relative">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="w-full h-full" style={{

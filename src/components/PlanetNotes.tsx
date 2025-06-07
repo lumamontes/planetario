@@ -15,7 +15,6 @@ export default function PlanetNotes({ planetId, user, isOwner }: PlanetNotesProp
   const [notes, setNotes] = useState<PlanetNoteWithUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [newNoteContent, setNewNoteContent] = useState('')
   const [newNoteColor, setNewNoteColor] = useState('#f59e0b')
   const [isPublic, setIsPublic] = useState(true)
@@ -46,34 +45,27 @@ export default function PlanetNotes({ planetId, user, isOwner }: PlanetNotesProp
   }
 
   const addNote = async () => {
-    if (!user || !newNoteContent.trim()) return
+    if (!newNoteContent.trim() || !user) return
 
-    setIsSubmitting(true)
+    setIsLoading(true)
     try {
-      const { data, error } = await supabase.rpc('add_planet_note', {
-        planet_uuid: planetId,
-        note_content: newNoteContent.trim(),
-        note_is_public: isPublic,
-        note_color: newNoteColor
-      })
+      const { error } = await supabase
+        .from('planet_notes')
+        .insert({
+          planet_id: planetId,
+          user_id: user.id,
+          content: newNoteContent.trim(),
+          is_public: true
+        })
 
       if (error) throw error
 
       setNewNoteContent('')
-      setNewNoteColor('#f59e0b')
-      setIsPublic(true)
-      setShowAddForm(false)
-      showMessage('Nota adicionada com sucesso!')
       loadNotes()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding note:', error)
-      if (error.message.includes('Cannot add notes to your own planet')) {
-        showMessage('Você não pode adicionar notas ao seu próprio planeta', 'error')
-      } else {
-        showMessage('Erro ao adicionar nota. Tente novamente.', 'error')
-      }
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
     }
   }
 
@@ -216,10 +208,10 @@ export default function PlanetNotes({ planetId, user, isOwner }: PlanetNotesProp
 
           <button
             onClick={addNote}
-            disabled={isSubmitting || !newNoteContent.trim()}
+            disabled={!newNoteContent.trim()}
             className="w-full px-4 py-2 bg-green-400 text-black font-bold hover:bg-green-300 disabled:bg-gray-600 disabled:text-gray-400 transition-colors text-sm rounded"
           >
-            {isSubmitting ? 'Enviando...' : 'Enviar Nota'}
+            Enviar Nota
           </button>
         </div>
       )}

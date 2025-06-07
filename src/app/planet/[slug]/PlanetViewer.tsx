@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef, Suspense } from 'react'
-import { Canvas, useFrame, useLoader } from '@react-three/fiber'
-import { OrbitControls, Text, Html, Stars, Sphere } from '@react-three/drei'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { OrbitControls, Text, Html, Stars } from '@react-three/drei'
 import * as THREE from 'three'
-import { Planet, PlanetContent, PlanetTheme, PlanetLayout } from '@/types/database'
+import { Planet, PlanetContent, PlanetTheme } from '@/types/database'
 import { User } from '@supabase/supabase-js'
 import PlanetNotes from '@/components/PlanetNotes'
 
@@ -19,7 +19,6 @@ interface ContentBlockProps {
   block: PlanetContent
   index: number
   totalBlocks: number
-  ringRadius: number
   onBlockClick?: (block: PlanetContent) => void
   theme: PlanetTheme
 }
@@ -54,7 +53,7 @@ function SpaceDust() {
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
   
-  useFrame((state) => {
+  useFrame(() => {
     if (pointsRef.current) {
       pointsRef.current.rotation.y += 0.0002
       pointsRef.current.rotation.x += 0.0001
@@ -235,7 +234,7 @@ function OrbitalRing({ radius, opacity = 0.1, speed = 0.001, theme }: { radius: 
 }
 
 // Enhanced Content Block in 3D Space with theme support
-function ContentBlock3D({ block, index, totalBlocks, ringRadius, onBlockClick, theme }: ContentBlockProps) {
+function ContentBlock3D({ block, index, totalBlocks, onBlockClick, theme }: Omit<ContentBlockProps, 'ringRadius'>) {
   const meshRef = useRef<THREE.Group>(null)
   const orbRef = useRef<THREE.Mesh>(null)
   const atmosphereRef = useRef<THREE.Mesh>(null)
@@ -495,7 +494,7 @@ function ContentBlock3D({ block, index, totalBlocks, ringRadius, onBlockClick, t
                       src={image.url} 
                       alt={image.alt || block.title || 'Planet content image'}
                       className="w-full h-16 object-cover rounded border"
-                      style={{ borderColor: getBlockColor() }}
+                      style={{ height: 'auto', borderColor: getBlockColor(), maxHeight: '150px', }}
                     />
                   ))}
                 </div>
@@ -667,7 +666,6 @@ function Scene3D({ planet, content, onBlockClick, theme }: { planet: Planet; con
           block={block}
           index={index}
           totalBlocks={content.length}
-          ringRadius={4}
           onBlockClick={onBlockClick}
           theme={theme}
         />
@@ -727,10 +725,9 @@ function extractYouTubeId(url: string) {
 
 export default function PlanetViewer({ planet, content, user, isOwner }: PlanetViewerProps) {
   const [isLoaded, setIsLoaded] = useState(false)
-  const [selectedBlock, setSelectedBlock] = useState<PlanetContent | null>(null)
   const [showNotes, setShowNotes] = useState(false)
 
-  // Parse theme and layout from planet data
+  // Parse theme from planet data
   const theme: PlanetTheme = (planet.theme as unknown as PlanetTheme) || {
     colors: {
       primary: '#00ff00',
@@ -752,21 +749,14 @@ export default function PlanetViewer({ planet, content, user, isOwner }: PlanetV
     shadows: true
   }
 
-  const layout: PlanetLayout = (planet.layout as unknown as PlanetLayout) || {
-    type: 'grid',
-    columns: 2,
-    gap: '16px',
-    maxWidth: '800px',
-    padding: '16px'
-  }
-
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 1000)
     return () => clearTimeout(timer)
   }, [])
 
   const handleBlockClick = (block: PlanetContent) => {
-    setSelectedBlock(block)
+    // Handle block click if needed in the future
+    console.log('Block clicked:', block.id)
   }
 
   // Apply theme colors to the page

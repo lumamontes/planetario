@@ -10,16 +10,20 @@ export default async function SettingsPage() {
     redirect('/')
   }
 
-  // Fetch user's profile
+  // Fetch user profile
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
+  if (profileError) {
+    console.error('Error fetching profile:', profileError)
+  }
+
   // If no profile exists, create one
   if (profileError && profileError.code === 'PGRST116') {
-    const { data: newProfile, error: createError } = await supabase
+    const { error: createError } = await supabase
       .from('profiles')
       .insert({
         id: user.id,

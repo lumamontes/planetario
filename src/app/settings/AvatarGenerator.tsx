@@ -35,11 +35,13 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
     
     return () => {
       hash = (hash * 9301 + 49297) % 233280
-      return hash / 233280
+      // Safety check to prevent division by zero
+      if (hash === 0) hash = 1
+      return Math.abs(hash / 233280)
     }
   }
 
-  const getColorPalette = (scheme: string, random: () => number) => {
+  const getColorPalette = (scheme: string) => {
     switch (scheme) {
       case 'neon':
         return [
@@ -68,8 +70,11 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
   }
 
   const generateGeometricAvatar = (ctx: CanvasRenderingContext2D, size: number, random: () => number, colors: string[]) => {
-    const centerX = size / 2
-    const centerY = size / 2
+    // Safety checks
+    if (size <= 0 || colors.length === 0) {
+      console.error('Invalid parameters for geometric avatar generation')
+      return
+    }
     
     // Background
     ctx.fillStyle = colors[Math.floor(random() * colors.length)]
@@ -122,7 +127,20 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
 
   const generatePixelAvatar = (ctx: CanvasRenderingContext2D, size: number, random: () => number, colors: string[]) => {
     const pixelSize = config.complexity === 'simple' ? 20 : config.complexity === 'medium' ? 12 : 8
+    
+    // Safety check to prevent division by zero
+    if (pixelSize <= 0 || size <= 0) {
+      console.error('Invalid pixelSize or size for pixel avatar generation')
+      return
+    }
+    
     const gridSize = Math.floor(size / pixelSize)
+    
+    // Safety check for gridSize
+    if (gridSize <= 0) {
+      console.error('Invalid gridSize for pixel avatar generation')
+      return
+    }
     
     // Create symmetric pattern
     for (let x = 0; x < Math.ceil(gridSize / 2); x++) {
@@ -140,10 +158,16 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
   }
 
   const generateAbstractAvatar = (ctx: CanvasRenderingContext2D, size: number, random: () => number, colors: string[]) => {
+    // Safety checks
+    if (size <= 0 || colors.length === 0) {
+      console.error('Invalid parameters for abstract avatar generation')
+      return
+    }
+    
     // Background gradient
     const gradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2)
     gradient.addColorStop(0, colors[0])
-    gradient.addColorStop(1, colors[1])
+    gradient.addColorStop(1, colors[Math.min(1, colors.length - 1)])
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, size, size)
     
@@ -176,6 +200,12 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
   }
 
   const generateSpaceAvatar = (ctx: CanvasRenderingContext2D, size: number, random: () => number, colors: string[]) => {
+    // Safety checks
+    if (size <= 0 || colors.length === 0) {
+      console.error('Invalid parameters for space avatar generation')
+      return
+    }
+    
     // Space background
     ctx.fillStyle = '#000011'
     ctx.fillRect(0, 0, size, size)
@@ -201,8 +231,8 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
     
     const planetGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, planetRadius)
     planetGradient.addColorStop(0, colors[0])
-    planetGradient.addColorStop(0.7, colors[1])
-    planetGradient.addColorStop(1, colors[2])
+    planetGradient.addColorStop(0.7, colors[Math.min(1, colors.length - 1)])
+    planetGradient.addColorStop(1, colors[Math.min(2, colors.length - 1)])
     
     ctx.fillStyle = planetGradient
     ctx.beginPath()
@@ -228,12 +258,19 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
 
   const generateAvatar = () => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) {
+      console.error('Canvas ref not available')
+      return
+    }
 
     setIsGenerating(true)
     
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx) {
+      console.error('Could not get 2D context from canvas')
+      setIsGenerating(false)
+      return
+    }
 
     const size = 256
     canvas.width = size
@@ -242,29 +279,45 @@ export default function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorPr
     // Clear canvas
     ctx.clearRect(0, 0, size, size)
 
-    const random = seededRandom(config.seed)
-    const colors = getColorPalette(config.colorScheme, random)
+    try {
+      const random = seededRandom(config.seed)
+      const colors = getColorPalette(config.colorScheme)
 
-    // Generate based on style
-    switch (config.style) {
-      case 'geometric':
-        generateGeometricAvatar(ctx, size, random, colors)
-        break
-      case 'pixel':
-        generatePixelAvatar(ctx, size, random, colors)
-        break
-      case 'abstract':
-        generateAbstractAvatar(ctx, size, random, colors)
-        break
-      case 'space':
-        generateSpaceAvatar(ctx, size, random, colors)
-        break
+      // Safety check for colors array
+      if (!colors || colors.length === 0) {
+        console.error('No colors available for avatar generation')
+        setIsGenerating(false)
+        return
+      }
+
+      // Generate based on style
+      switch (config.style) {
+        case 'geometric':
+          generateGeometricAvatar(ctx, size, random, colors)
+          break
+        case 'pixel':
+          generatePixelAvatar(ctx, size, random, colors)
+          break
+        case 'abstract':
+          generateAbstractAvatar(ctx, size, random, colors)
+          break
+        case 'space':
+          generateSpaceAvatar(ctx, size, random, colors)
+          break
+        default:
+          console.error('Unknown avatar style:', config.style)
+          setIsGenerating(false)
+          return
+      }
+
+      // Convert to data URL
+      const dataUrl = canvas.toDataURL('image/png')
+      setPreviewUrl(dataUrl)
+    } catch (error) {
+      console.error('Error generating avatar:', error)
+    } finally {
+      setIsGenerating(false)
     }
-
-    // Convert to data URL
-    const dataUrl = canvas.toDataURL('image/png')
-    setPreviewUrl(dataUrl)
-    setIsGenerating(false)
   }
 
   const handleUseAvatar = () => {

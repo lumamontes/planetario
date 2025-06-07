@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { Profile } from '@/types/database'
@@ -19,13 +18,11 @@ export default function SettingsForm({ user, profile }: SettingsFormProps) {
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState<'success' | 'error'>('success')
   
-  // Profile state - username and avatar only
+  // Form state
   const [username, setUsername] = useState(profile?.username || '')
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '')
-  
-  const router = useRouter()
+
   const supabase = createClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const showMessage = (msg: string, type: 'success' | 'error' = 'success') => {
     setMessage(msg)

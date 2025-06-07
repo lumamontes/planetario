@@ -1,11 +1,11 @@
 import Link from 'next/link'
 
 interface PageProps {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; details?: string }>
 }
 
 export default async function AuthCodeError({ searchParams }: PageProps) {
-  const { error } = await searchParams
+  const { error, details } = await searchParams
   
   const getErrorMessage = (errorType?: string) => {
     switch (errorType) {
@@ -15,6 +15,8 @@ export default async function AuthCodeError({ searchParams }: PageProps) {
         return 'No authentication code was provided in the callback.'
       case 'unexpected':
         return 'An unexpected error occurred during authentication.'
+      case 'no_user_data':
+        return 'Authentication succeeded but no user data was returned.'
       default:
         return 'There was an issue processing your email confirmation.'
     }
@@ -28,6 +30,8 @@ export default async function AuthCodeError({ searchParams }: PageProps) {
         return 'INVALID AUTHENTICATION LINK'
       case 'unexpected':
         return 'SYSTEM ERROR'
+      case 'no_user_data':
+        return 'USER DATA ERROR'
       default:
         return 'EMAIL CONFIRMATION ERROR'
     }
@@ -58,7 +62,12 @@ export default async function AuthCodeError({ searchParams }: PageProps) {
             
             {error && (
               <div className="mb-6 p-3 border border-red-500 bg-red-900 bg-opacity-20 text-red-400 text-sm">
-                ERROR_CODE: {error.toUpperCase()}
+                <div className="font-bold mb-2">ERROR_CODE: {error.toUpperCase()}</div>
+                {details && (
+                  <div className="text-xs text-red-300 break-words">
+                    DETAILS: {decodeURIComponent(details)}
+                  </div>
+                )}
               </div>
             )}
             
@@ -75,15 +84,23 @@ export default async function AuthCodeError({ searchParams }: PageProps) {
               >
                 BACK TO LOGIN
               </Link>
+              <Link
+                href="/signup"
+                className="block w-full px-4 py-2 border border-blue-400 text-blue-400 hover:bg-blue-900 transition-colors"
+              >
+                CREATE NEW ACCOUNT
+              </Link>
             </div>
 
             <div className="mt-6 text-xs text-green-600">
-              <p>TROUBLESHOOTING:</p>
+              <p className="font-bold mb-2">TROUBLESHOOTING:</p>
               <ul className="mt-2 space-y-1 text-left">
-                <li>• Check if you're already logged in</li>
+                <li>• Check if you&apos;re already logged in</li>
                 <li>• Try signing in manually with your email</li>
                 <li>• Request a new confirmation email if needed</li>
                 <li>• Clear browser cache and cookies</li>
+                <li>• Check your email for the latest confirmation link</li>
+                <li>• Make sure you&apos;re using the same browser/device</li>
               </ul>
             </div>
           </div>

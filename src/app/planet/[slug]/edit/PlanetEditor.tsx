@@ -1,43 +1,356 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { User } from '@supabase/supabase-js'
-import { Planet, PlanetContent, ContentType } from '@/types/database'
+import { Planet, PlanetContent, ContentType, PlanetTheme } from '@/types/database'
 
 interface PlanetEditorProps {
   planet: Planet
   initialContent: PlanetContent[]
-  user: User
 }
 
-interface NewContentForm {
-  type: ContentType
-  title: string
-  content: any
+const defaultTheme: PlanetTheme = {
+  colors: {
+    primary: '#00ff00',
+    secondary: '#ffff00',
+    background: '#000000',
+    text: '#ffffff',
+    accent: '#ff00ff'
+  },
+  fonts: {
+    heading: 'Monaco, "Courier New", monospace',
+    body: 'Monaco, "Courier New", monospace'
+  },
+  spacing: {
+    small: '8px',
+    medium: '16px',
+    large: '24px'
+  },
+  borderRadius: '0px',
+  shadows: false
 }
 
-export default function PlanetEditor({ planet, initialContent, user }: PlanetEditorProps) {
-  const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'preview'>('content')
+// Color Picker Component
+interface ColorPickerProps {
+  label: string
+  value: string
+  onChange: (color: string) => void
+  description?: string
+}
+
+function ColorPicker({ label, value, onChange, description }: ColorPickerProps) {
+  return (
+    <div className="space-y-2">
+      <label className="block text-green-400 font-medium text-sm">
+        {label}
+      </label>
+      <div className="flex items-center space-x-3">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-12 h-10 border border-green-400 rounded cursor-pointer bg-black"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 bg-black border border-green-400 text-green-400 px-3 py-2 text-sm focus:outline-none focus:border-green-300 rounded font-mono"
+          placeholder="#000000"
+        />
+      </div>
+      {description && (
+        <p className="text-green-600 text-xs">{description}</p>
+      )}
+    </div>
+  )
+}
+
+// Custom Theme Editor Component
+interface CustomThemeEditorProps {
+  theme: PlanetTheme
+  onThemeChange: (theme: PlanetTheme) => void
+  onSave: () => void
+  isLoading: boolean
+}
+
+function CustomThemeEditor({ theme, onThemeChange, onSave, isLoading }: CustomThemeEditorProps) {
+  const updateColor = (colorKey: keyof PlanetTheme['colors'], value: string) => {
+    onThemeChange({
+      ...theme,
+      colors: {
+        ...theme.colors,
+        [colorKey]: value
+      }
+    })
+  }
+
+  const presetSchemes = [
+    {
+      name: '🟢 Terminal Verde',
+      colors: {
+        primary: '#00ff00',
+        secondary: '#ffff00',
+        background: '#000000',
+        text: '#ffffff',
+        accent: '#ff00ff'
+      }
+    },
+    {
+      name: '🌈 Cyberpunk Neon',
+      colors: {
+        primary: '#ff00ff',
+        secondary: '#00ffff',
+        background: '#0a0a0a',
+        text: '#ffffff',
+        accent: '#ffff00'
+      }
+    },
+    {
+      name: '🌌 Espaço Profundo',
+      colors: {
+        primary: '#0066ff',
+        secondary: '#66ccff',
+        background: '#000011',
+        text: '#ffffff',
+        accent: '#ff6600'
+      }
+    },
+    {
+      name: '🟡 Retro Amber',
+      colors: {
+        primary: '#ffaa00',
+        secondary: '#ffcc66',
+        background: '#1a1a00',
+        text: '#ffffff',
+        accent: '#ff6600'
+      }
+    }
+  ]
+
+  return (
+    <div className="space-y-6">
+      {/* Preset Schemes */}
+      <div>
+        <h4 className="text-green-400 font-medium mb-3">Esquemas Predefinidos</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {presetSchemes.map((scheme) => (
+            <button
+              key={scheme.name}
+              onClick={() => onThemeChange({
+                ...theme,
+                colors: scheme.colors
+              })}
+              className="p-3 border border-green-400/30 rounded hover:border-green-400 transition-colors text-left"
+            >
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="flex space-x-1">
+                  {Object.values(scheme.colors).slice(0, 3).map((color, index) => (
+                    <div
+                      key={index}
+                      className="w-4 h-4 rounded border border-green-400/30"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <span className="text-green-400 text-sm font-medium">{scheme.name}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Custom Color Pickers */}
+      <div>
+        <h4 className="text-green-400 font-medium mb-3">Cores Personalizadas</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ColorPicker
+            label="Cor Primária"
+            value={theme.colors.primary}
+            onChange={(color) => updateColor('primary', color)}
+            description="Cor principal do tema, usada em títulos e elementos importantes"
+          />
+          <ColorPicker
+            label="Cor Secundária"
+            value={theme.colors.secondary}
+            onChange={(color) => updateColor('secondary', color)}
+            description="Cor secundária, usada em subtítulos e elementos de apoio"
+          />
+          <ColorPicker
+            label="Cor de Fundo"
+            value={theme.colors.background}
+            onChange={(color) => updateColor('background', color)}
+            description="Cor de fundo principal do planeta"
+          />
+          <ColorPicker
+            label="Cor do Texto"
+            value={theme.colors.text}
+            onChange={(color) => updateColor('text', color)}
+            description="Cor do texto principal"
+          />
+          <ColorPicker
+            label="Cor de Acento"
+            value={theme.colors.accent}
+            onChange={(color) => updateColor('accent', color)}
+            description="Cor de destaque para links e elementos interativos"
+          />
+        </div>
+      </div>
+
+      {/* Preview */}
+      <div>
+        <h4 className="text-green-400 font-medium mb-3">Prévia do Tema</h4>
+        <div 
+          className="border rounded p-4 space-y-3"
+          style={{ 
+            backgroundColor: theme.colors.background,
+            borderColor: theme.colors.primary,
+            color: theme.colors.text
+          }}
+        >
+          <h5 
+            className="font-bold text-lg"
+            style={{ color: theme.colors.primary }}
+          >
+            Título Principal
+          </h5>
+          <p 
+            className="text-sm"
+            style={{ color: theme.colors.secondary }}
+          >
+            Subtítulo ou descrição secundária
+          </p>
+          <p style={{ color: theme.colors.text }}>
+            Este é um exemplo de texto normal no seu planeta.
+          </p>
+          <a 
+            href="#" 
+            className="underline"
+            style={{ color: theme.colors.accent }}
+            onClick={(e) => e.preventDefault()}
+          >
+            Link de exemplo
+          </a>
+        </div>
+      </div>
+
+      {/* Font Selection */}
+      <div>
+        <h4 className="text-green-400 font-medium mb-3">Tipografia</h4>
+        <div>
+          <label className="block text-green-400 mb-2 font-medium">
+            Família da Fonte
+          </label>
+          <select
+            value={theme.fonts?.body || 'Monaco, "Courier New", monospace'}
+            onChange={(e) => onThemeChange({
+              ...theme,
+              fonts: { 
+                ...theme.fonts, 
+                body: e.target.value, 
+                heading: e.target.value 
+              }
+            })}
+            className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
+          >
+            <option value='Monaco, "Courier New", monospace'>🔤 Monospace (Terminal)</option>
+            <option value='"Helvetica Neue", Arial, sans-serif'>📝 Sans Serif (Moderno)</option>
+            <option value='"Times New Roman", serif'>📖 Serif (Clássico)</option>
+            <option value='"Comic Sans MS", cursive'>🎨 Comic Sans (Divertido)</option>
+            <option value='"Courier New", monospace'>⌨️ Courier (Máquina de escrever)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Visual Effects */}
+      <div>
+        <h4 className="text-green-400 font-medium mb-3">Efeitos Visuais</h4>
+        <label className="flex items-center space-x-3 p-3 border border-green-400/30 rounded hover:border-green-400 transition-colors cursor-pointer">
+          <input
+            type="checkbox"
+            checked={theme.shadows || false}
+            onChange={(e) => onThemeChange({
+              ...theme,
+              shadows: e.target.checked
+            })}
+            className="text-green-400"
+          />
+          <div>
+            <div className="flex items-center space-x-2">
+              <span>✨</span>
+              <span className="font-medium">Habilitar sombras e efeitos</span>
+            </div>
+            <div className="text-sm text-green-600">Adiciona profundidade visual ao seu planeta</div>
+          </div>
+        </label>
+      </div>
+
+      {/* Save Button */}
+      <div className="border-t border-green-400/30 pt-6">
+        <button
+          onClick={onSave}
+          disabled={isLoading}
+          className="w-full py-3 px-4 bg-green-400 text-black font-bold hover:bg-green-300 disabled:bg-gray-600 disabled:text-gray-400 transition-colors rounded"
+        >
+          {isLoading ? 'Salvando...' : 'Salvar Tema Personalizado'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function PlanetEditor({ planet, initialContent }: PlanetEditorProps) {
+  const [activeTab, setActiveTab] = useState<'content' | 'settings' | 'theme'>('content')
   const [content, setContent] = useState<PlanetContent[]>(initialContent)
-  const [loading, setLoading] = useState(false)
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [editingBlock, setEditingBlock] = useState<string | null>(null)
-  const [newContentForm, setNewContentForm] = useState<NewContentForm>({
+  const [isLoading, setIsLoading] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingContent, setEditingContent] = useState<PlanetContent | null>(null)
+  const [newContent, setNewContent] = useState<{
+    type: ContentType
+    title: string
+    content: any
+  }>({
     type: 'text',
     title: '',
     content: {}
   })
+  
+  // Theme state
+  const [theme, setTheme] = useState<PlanetTheme>(
+    (planet.theme as unknown as PlanetTheme) || defaultTheme
+  )
+  
   const router = useRouter()
   const supabase = createClient()
 
   const resetForm = () => {
-    setNewContentForm({
+    setNewContent({
       type: 'text',
       title: '',
       content: {}
     })
+  }
+
+  const saveTheme = async () => {
+    setIsLoading(true)
+    try {
+      const { error } = await supabase
+        .from('planets')
+        .update({
+          theme: theme as any
+        })
+        .eq('id', planet.id)
+
+      if (error) throw error
+
+      alert('Tema salvo com sucesso!')
+    } catch (err: any) {
+      console.error('Failed to save theme:', err)
+      alert('Erro ao salvar tema: ' + err.message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getDefaultContent = (type: ContentType) => {
@@ -60,7 +373,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
   }
 
   const handleTypeChange = (type: ContentType) => {
-    setNewContentForm(prev => ({
+    setNewContent(prev => ({
       ...prev,
       type,
       content: getDefaultContent(type)
@@ -68,7 +381,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
   }
 
   const addContentBlock = async () => {
-    if (!newContentForm.title.trim()) {
+    if (!newContent.title.trim()) {
       // Auto-generate title based on type
       const autoTitles: Record<ContentType, string> = {
         text: 'Texto',
@@ -85,13 +398,13 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
         instagram_post: 'Post Instagram',
         twitter_tweet: 'Tweet'
       }
-      setNewContentForm(prev => ({
+      setNewContent(prev => ({
         ...prev,
         title: autoTitles[prev.type] || 'Conteúdo'
       }))
     }
 
-    setLoading(true)
+    setIsLoading(true)
     try {
       const newPosition = Math.max(...content.map(c => c.position), -1) + 1
       
@@ -99,9 +412,9 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
         .from('planet_content')
         .insert({
           planet_id: planet.id,
-          type: newContentForm.type,
-          title: newContentForm.title.trim() || 'Conteúdo',
-          content: newContentForm.content,
+          type: newContent.type,
+          title: newContent.title.trim() || 'Conteúdo',
+          content: newContent.content,
           position: newPosition,
           is_visible: true
         })
@@ -111,18 +424,18 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
       if (error) throw error
 
       setContent(prev => [...prev, data])
-      setShowAddModal(false)
+      setShowAddForm(false)
       resetForm()
     } catch (err: any) {
       console.error('Failed to add content block:', err)
       alert('Failed to add content block: ' + err.message)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   const updateContentBlock = async (blockId: string, updates: Partial<PlanetContent>) => {
-    setLoading(true)
+    setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('planet_content')
@@ -134,19 +447,19 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
       if (error) throw error
 
       setContent(prev => prev.map(c => c.id === blockId ? data : c))
-      setEditingBlock(null)
+      setEditingContent(null)
     } catch (err: any) {
       console.error('Failed to update content block:', err)
       alert('Failed to update content block: ' + err.message)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   const deleteContentBlock = async (contentId: string) => {
     if (!confirm('Are you sure you want to delete this content block?')) return
 
-    setLoading(true)
+    setIsLoading(true)
     try {
       const { error } = await supabase
         .from('planet_content')
@@ -160,7 +473,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
       console.error('Failed to delete content block:', err)
       alert('Failed to delete content block: ' + err.message)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -176,7 +489,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
     newContent.splice(newIndex, 0, movedBlock)
 
     // Update positions in database
-    setLoading(true)
+    setIsLoading(true)
     try {
       const updates = newContent.map((block, index) => ({
         id: block.id,
@@ -195,7 +508,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
       console.error('Failed to reorder content blocks:', err)
       alert('Failed to reorder content blocks: ' + err.message)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -209,7 +522,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
     const maxImages = 4
     const currentImages = blockId ? 
       ((content.find(c => c.id === blockId)?.content as any)?.images || []) :
-      ((newContentForm.content as any)?.images || [])
+      ((newContent.content as any)?.images || [])
     
     if (currentImages.length + files.length > maxImages) {
       alert(`Máximo de ${maxImages} imagens por bloco`)
@@ -246,7 +559,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
             }
           } else {
             // Update form
-            setNewContentForm(prev => ({
+            setNewContent(prev => ({
               ...prev,
               content: {
                 ...prev.content,
@@ -271,9 +584,9 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
         })
       }
     } else {
-      const images = [...((newContentForm.content as any)?.images || [])]
+      const images = [...((newContent.content as any)?.images || [])]
       images.splice(imageIndex, 1)
-      setNewContentForm(prev => ({
+      setNewContent(prev => ({
         ...prev,
         content: { ...prev.content, images }
       }))
@@ -281,7 +594,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
   }
 
   const renderContentForm = () => {
-    const { type, content: formContent } = newContentForm
+    const { type, content: formContent } = newContent
 
     switch (type) {
       case 'text':
@@ -291,7 +604,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <label className="block text-green-400 mb-2 font-medium">Conteúdo:</label>
               <textarea
                 value={formContent.text || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, text: e.target.value }
                 }))}
@@ -363,7 +676,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <input
                 type="text"
                 value={(formContent as any)?.caption || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, caption: e.target.value }
                 }))}
@@ -382,7 +695,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <input
                 type="url"
                 value={formContent.url || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, url: e.target.value, type: 'youtube' }
                 }))}
@@ -415,7 +728,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <input
                 type="url"
                 value={formContent.url || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, url: e.target.value }
                 }))}
@@ -428,7 +741,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <input
                 type="text"
                 value={formContent.title || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, title: e.target.value }
                 }))}
@@ -447,7 +760,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <input
                 type="url"
                 value={formContent.url || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, url: e.target.value }
                 }))}
@@ -460,7 +773,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <input
                 type="text"
                 value={formContent.title || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, title: e.target.value }
                 }))}
@@ -488,7 +801,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <label className="block text-green-400 mb-2 font-medium">HTML:</label>
               <textarea
                 value={formContent.html || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, html: e.target.value }
                 }))}
@@ -501,7 +814,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <label className="block text-green-400 mb-2 font-medium">CSS (opcional):</label>
               <textarea
                 value={formContent.css || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, css: e.target.value }
                 }))}
@@ -514,7 +827,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               <label className="block text-green-400 mb-2 font-medium">JavaScript (opcional):</label>
               <textarea
                 value={formContent.js || ''}
-                onChange={(e) => setNewContentForm(prev => ({
+                onChange={(e) => setNewContent(prev => ({
                   ...prev,
                   content: { ...prev.content, js: e.target.value }
                 }))}
@@ -553,7 +866,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
   }
 
   const renderContentBlock = (block: PlanetContent, index: number) => {
-    const isEditing = editingBlock === block.id
+    const isEditing = editingContent === block
 
     const getTypeIcon = (type: string) => {
       switch (type) {
@@ -596,7 +909,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
           <div className="flex space-x-2">
             <button
               onClick={() => moveContentBlock(block.id, 'up')}
-              disabled={index === 0 || loading}
+              disabled={index === 0 || isLoading}
               className="p-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors disabled:opacity-50 rounded"
               title="Mover para cima"
             >
@@ -604,23 +917,23 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
             </button>
             <button
               onClick={() => moveContentBlock(block.id, 'down')}
-              disabled={index === content.length - 1 || loading}
+              disabled={index === content.length - 1 || isLoading}
               className="p-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors disabled:opacity-50 rounded"
               title="Mover para baixo"
             >
               ↓
             </button>
             <button
-              onClick={() => setEditingBlock(isEditing ? null : block.id)}
+              onClick={() => setEditingContent(isEditing ? null : block)}
               className="px-3 py-2 border border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-black transition-colors rounded"
-              disabled={loading}
+              disabled={isLoading}
             >
               {isEditing ? 'Cancelar' : 'Editar'}
             </button>
             <button
               onClick={() => deleteContentBlock(block.id)}
               className="px-3 py-2 border border-red-400 text-red-400 hover:bg-red-400 hover:text-black transition-colors rounded"
-              disabled={loading}
+              disabled={isLoading}
             >
               Excluir
             </button>
@@ -1031,6 +1344,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               {[
                 { id: 'content', label: 'Gerenciar Conteúdo', icon: '📝' },
                 { id: 'settings', label: 'Configurações', icon: '⚙️' },
+                { id: 'theme', label: 'Tema', icon: '🎨' },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1055,9 +1369,9 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
                 <div className="flex justify-between items-center">
                   <h3 className="text-green-400 font-bold text-xl">Blocos de Conteúdo</h3>
                   <button
-                    onClick={() => setShowAddModal(true)}
+                    onClick={() => setShowAddForm(true)}
                     className="flex items-center space-x-2 px-4 py-2 bg-green-400 text-black hover:bg-green-300 transition-colors rounded font-bold"
-                    disabled={loading}
+                    disabled={isLoading}
                   >
                     <span>+</span>
                     <span>Adicionar Bloco</span>
@@ -1068,7 +1382,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
                   <div className="text-center py-12 text-green-600 border border-green-400/30 rounded-lg">
                     <div className="text-4xl mb-4">📦</div>
                     <p className="text-lg font-medium">Nenhum bloco de conteúdo encontrado</p>
-                    <p className="text-sm mt-2">Clique em "Adicionar Bloco" para começar a construir seu planeta</p>
+                    <p className="text-sm mt-2">Clique em &quot;Adicionar Bloco&quot; para começar a construir seu planeta</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1136,186 +1450,30 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
               </div>
             )}
 
-            {activeTab === 'preview' && (
+            {activeTab === 'theme' && (
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-green-400 font-bold text-xl">Prévia do Planeta</h3>
-                  <button
-                    onClick={() => window.open(`/planet/${planet.slug}`, '_blank')}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-400 text-black hover:bg-blue-300 transition-colors rounded font-bold"
-                  >
-                    <span>🚀</span>
-                    <span>Abrir Visualização Completa</span>
-                  </button>
-                </div>
+                <h3 className="text-green-400 font-bold text-xl">Tema do Planeta</h3>
                 
-                {/* Preview Container */}
-                <div className="border border-green-400 bg-black rounded-lg overflow-hidden">
-                  <div className="bg-green-400 text-black px-4 py-3 flex items-center justify-between">
-                    <span className="font-bold">Prévia do Planeta</span>
-                    <span className="text-sm">{content.length} blocos</span>
-                  </div>
-                  
-                  {/* Mini Preview */}
-                  <div className="p-6 bg-gradient-to-br from-indigo-950 via-purple-950 to-black min-h-[400px] relative overflow-hidden">
-                    {/* Mini cosmic background */}
-                    <div className="absolute inset-0">
-                      {[...Array(20)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="absolute w-0.5 h-0.5 bg-white rounded-full animate-pulse"
-                          style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            animationDelay: `${Math.random() * 3}s`,
-                          }}
-                        ></div>
-                      ))}
-                    </div>
-                    
-                    {/* Preview Header */}
-                    <div className="relative z-10 mb-6">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                          <span className="text-lg">🪐</span>
-                        </div>
-                        <h2 className="text-2xl font-bold text-white">
-                          {planet.name}
-                        </h2>
-                      </div>
-                      {planet.description && (
-                        <p className="text-gray-300 text-sm max-w-2xl">
-                          {planet.description}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Preview Content Grid */}
-                    {content.length === 0 ? (
-                      <div className="relative z-10 text-center py-12">
-                        <div className="text-4xl mb-4">🌌</div>
-                        <p className="text-purple-200">Universo Vazio</p>
-                        <p className="text-gray-400 text-sm mt-2">Adicione blocos de conteúdo para vê-los aqui</p>
-                      </div>
-                    ) : (
-                      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {content.slice(0, 6).map((block, index) => {
-                          const baseClasses = "relative overflow-hidden rounded-xl border border-purple-500/30 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-purple-400/60"
-                          
-                          switch (block.type) {
-                            case 'text':
-                              return (
-                                <div key={block.id} className={`${baseClasses} bg-gradient-to-br from-indigo-900/40 to-purple-900/40 p-4 min-h-[120px] flex flex-col justify-center`}>
-                                  <h4 className="text-purple-200 font-bold text-sm mb-2">
-                                    {block.title}
-                                  </h4>
-                                  <div className="text-gray-300 text-xs leading-relaxed">
-                                    {((block.content as any)?.text || '').substring(0, 100)}
-                                    {((block.content as any)?.text || '').length > 100 && '...'}
-                                  </div>
-                                </div>
-                              )
-
-                            case 'image':
-                              return (
-                                <div key={block.id} className={`${baseClasses} bg-gradient-to-br from-slate-900/40 to-gray-900/40 min-h-[120px] overflow-hidden group`}>
-                                  {(block.content as any)?.url ? (
-                                    <div className="relative h-full">
-                                      <img 
-                                        src={(block.content as any).url} 
-                                        alt={(block.content as any).alt || block.title}
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                                        <h4 className="text-white font-bold text-sm">
-                                          {block.title}
-                                        </h4>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="h-full flex items-center justify-center">
-                                      <div className="text-center">
-                                        <div className="text-2xl mb-2">🖼️</div>
-                                        <h4 className="text-purple-200 font-bold text-sm">
-                                          {block.title}
-                                        </h4>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )
-
-                            case 'link':
-                              return (
-                                <div key={block.id} className={`${baseClasses} bg-gradient-to-br from-emerald-900/40 to-teal-900/40 p-4 min-h-[120px] flex flex-col justify-center`}>
-                                  <div className="flex items-center mb-2">
-                                    <span className="text-emerald-400 mr-2">🔗</span>
-                                    <h4 className="text-emerald-200 font-bold text-sm">
-                                      {block.title}
-                                    </h4>
-                                  </div>
-                                  <div className="text-gray-300 text-xs">
-                                    {(block.content as any)?.description || 'Link externo'}
-                                  </div>
-                                </div>
-                              )
-
-                            case 'audio':
-                              return (
-                                <div key={block.id} className={`${baseClasses} bg-gradient-to-br from-pink-900/40 to-rose-900/40 p-4 min-h-[120px] flex flex-col justify-center`}>
-                                  <div className="flex items-center mb-2">
-                                    <span className="text-pink-400 mr-2">🎵</span>
-                                    <h4 className="text-pink-200 font-bold text-sm">
-                                      {block.title}
-                                    </h4>
-                                  </div>
-                                  <div className="text-gray-300 text-xs">
-                                    {(block.content as any)?.artist || 'Arquivo de áudio'}
-                                  </div>
-                                </div>
-                              )
-
-                            default:
-                              return (
-                                <div key={block.id} className={`${baseClasses} bg-gradient-to-br from-gray-900/40 to-slate-900/40 p-4 min-h-[120px] flex flex-col justify-center`}>
-                                  <h4 className="text-gray-200 font-bold text-sm">
-                                    {block.title}
-                                  </h4>
-                                  <div className="text-gray-400 text-xs">
-                                    {block.type}
-                                  </div>
-                                </div>
-                              )
-                          }
-                        })}
-                        
-                        {content.length > 6 && (
-                          <div className="bg-gradient-to-br from-gray-900/40 to-slate-900/40 rounded-xl border border-gray-500/30 p-4 min-h-[120px] flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="text-2xl mb-2">+{content.length - 6}</div>
-                              <p className="text-gray-400 text-xs">mais blocos</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <CustomThemeEditor
+                  theme={theme}
+                  onThemeChange={(newTheme) => setTheme(newTheme)}
+                  onSave={saveTheme}
+                  isLoading={isLoading}
+                />
               </div>
             )}
           </div>
         </div>
 
         {/* Add Content Modal */}
-        {showAddModal && (
+        {showAddForm && (
           <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4">
             <div className="bg-black border border-green-400 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-green-400 text-xl font-bold">Adicionar Novo Bloco</h3>
                 <button
                   onClick={() => {
-                    setShowAddModal(false)
+                    setShowAddForm(false)
                     resetForm()
                   }}
                   className="text-green-400 hover:text-green-300 text-2xl"
@@ -1329,7 +1487,7 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
                 <div>
                   <label className="block text-green-400 mb-2 font-medium">Tipo de Conteúdo:</label>
                   <select
-                    value={newContentForm.type}
+                    value={newContent.type}
                     onChange={(e) => handleTypeChange(e.target.value as ContentType)}
                     className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
                   >
@@ -1347,8 +1505,8 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
                   <label className="block text-green-400 mb-2 font-medium">Título:</label>
                   <input
                     type="text"
-                    value={newContentForm.title}
-                    onChange={(e) => setNewContentForm(prev => ({ ...prev, title: e.target.value }))}
+                    value={newContent.title}
+                    onChange={(e) => setNewContent(prev => ({ ...prev, title: e.target.value }))}
                     className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
                     placeholder="Digite o título do bloco..."
                     maxLength={100}
@@ -1362,14 +1520,14 @@ export default function PlanetEditor({ planet, initialContent, user }: PlanetEdi
                 <div className="flex gap-3 pt-4 border-t border-green-400/30">
                   <button
                     onClick={addContentBlock}
-                    disabled={loading}
+                    disabled={isLoading}
                     className="flex-1 py-2 px-4 bg-green-400 text-black hover:bg-green-300 transition-colors disabled:bg-gray-600 disabled:text-gray-400 rounded font-bold"
                   >
-                    {loading ? 'Adicionando...' : 'Adicionar Bloco'}
+                    {isLoading ? 'Adicionando...' : 'Adicionar Bloco'}
                   </button>
                   <button
                     onClick={() => {
-                      setShowAddModal(false)
+                      setShowAddForm(false)
                       resetForm()
                     }}
                     className="flex-1 py-2 px-4 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-colors rounded"

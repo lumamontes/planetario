@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -35,7 +35,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         setMessage('Sucesso! Verifique seu email para o link de confirmação.')
       } else {
         setMessage('Autenticando...')
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })

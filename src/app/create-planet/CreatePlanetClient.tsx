@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
-import { PlanetTheme, PlanetLayout } from '@/types/database'
+import { PlanetTheme } from '@/types/database'
 
 interface CreatePlanetClientProps {
   user: User
@@ -31,28 +31,8 @@ const defaultTheme: PlanetTheme = {
   shadows: false
 }
 
-const defaultLayout: PlanetLayout = {
-  type: 'grid',
-  columns: 2,
-  gap: '16px',
-  maxWidth: '800px',
-  padding: '16px'
-}
-
-const funnyPlaceholders = [
-  'tuts tuts tuts',
-  'lol',
-  'uiuiui',
-  'tururu',
-  'wtf wtf wtf',
-  'minhas coisas',
-  'só mais um planeta',
-  'meu planeta',
-];
-
-
 export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
-  const [activeTab, setActiveTab] = useState<'basic' | 'theme' | 'layout'>('basic')
+  const [activeTab, setActiveTab] = useState<'basic' | 'theme'>('basic')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -71,9 +51,6 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
 
   // Theme settings
   const [theme, setTheme] = useState<PlanetTheme>(defaultTheme)
-
-  // Layout settings
-  const [layout, setLayout] = useState<PlanetLayout>(defaultLayout)
 
   const handleCreatePlanet = async () => {
     if (!name.trim()) {
@@ -103,8 +80,7 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
           slug: slugData,
           description: description.trim() || null,
           is_public: isPublic,
-          theme: theme as any,
-          layout: layout as any
+          theme: theme as any
         })
         .select()
         .single()
@@ -193,8 +169,7 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
             <div className="flex">
               {[
                 { id: 'basic', label: 'Informações Básicas', icon: '📝' },
-                { id: 'theme', label: 'Aparência', icon: '🎨' },
-                { id: 'layout', label: 'Layout', icon: '📐' }
+                { id: 'theme', label: 'Aparência', icon: '🎨' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -399,41 +374,6 @@ export default function CreatePlanetClient({ user }: CreatePlanetClientProps) {
                       <div className="text-sm text-green-600">Adiciona profundidade visual ao seu planeta</div>
                     </div>
                   </label>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'layout' && (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-green-400 mb-2 font-medium">
-                    Estilo de layout
-                  </label>
-                  <select
-                    value={layout.type}
-                    onChange={(e) => setLayout(prev => ({ ...prev, type: e.target.value as any }))}
-                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
-                  >
-                    <option value="grid">📱 Grade - Layout em grade responsiva</option>
-                    <option value="list">📋 Lista - Layout vertical simples</option>
-                    <option value="masonry">🧱 Masonry - Layout tipo Pinterest</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-green-400 mb-2 font-medium">
-                    Largura máxima
-                  </label>
-                  <select
-                    value={layout.maxWidth}
-                    onChange={(e) => setLayout(prev => ({ ...prev, maxWidth: e.target.value }))}
-                    className="w-full bg-black border border-green-400 text-green-400 px-3 py-2 focus:outline-none focus:border-green-300 rounded"
-                  >
-                    <option value="600px">📱 600px - Estreito</option>
-                    <option value="800px">💻 800px - Médio</option>
-                    <option value="1000px">🖥️ 1000px - Largo</option>
-                    <option value="100%">📺 100% - Largura Total</option>
-                  </select>
                 </div>
               </div>
             )}

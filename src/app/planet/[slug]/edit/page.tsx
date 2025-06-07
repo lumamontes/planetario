@@ -44,7 +44,6 @@ export default async function EditPlanetPage({ params }: PageProps) {
     <PlanetEditor 
       planet={planet} 
       initialContent={content || []} 
-      user={user} 
     />
   )
 } 
